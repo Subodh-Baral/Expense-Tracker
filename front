@@ -1,0 +1,626 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
+#include <limits>
+#include <algorithm>
+// #include <conio.h>   // Windows only - not needed on Linux/Mac
+// Use termios on Linux/Mac instead
+
+#ifdef _WIN32
+    #include <windows.h>
+    #define CLEAR "cls"
+#else
+    #include <termios.h>
+    #include <unistd.h>
+    #define CLEAR "clear"
+#endif
+
+using namespace std;
+
+// ─── ANSI Color Codes ────────────────────────────────────────────────────────
+#define RESET       "\033[0m"
+#define BOLD        "\033[1m"
+#define DIM         "\033[2m"
+
+// Foreground
+#define FG_WHITE    "\033[97m"
+#define FG_GRAY     "\033[90m"
+#define FG_GREEN    "\033[92m"
+#define FG_CYAN     "\033[96m"
+#define FG_RED      "\033[91m"
+#define FG_YELLOW   "\033[93m"
+#define FG_BLUE     "\033[94m"
+
+// Background
+#define BG_DARK     "\033[48;2;30;35;48m"
+#define BG_CARD     "\033[48;2;40;46;60m"
+#define BG_INPUT    "\033[48;2;50;58;75m"
+#define BG_GREEN    "\033[48;2;26;188;120m"
+#define BG_BLUE     "\033[48;2;59;130;246m"
+
+// ─── User Database ────────────────────────────────────────────────────────────
+struct User {
+    string email;
+    string password;
+    string name;
+};
+
+vector<User> userDatabase;
+
+// ─── Utility Functions ────────────────────────────────────────────────────────
+
+void clearScreen() {
+    system(CLEAR);
+}
+
+void printLine(int width = 58) {
+    cout << FG_GRAY;
+    for (int i = 0; i < width; i++) cout << "─";
+    cout << RESET << "\n";
+}
+
+void centerText(const string& text, int width = 58) {
+    int padding = (width - (int)text.length()) / 2;
+    if (padding > 0) cout << string(padding, ' ');
+    cout << text;
+}
+
+// Read password with * masking
+string readPassword() {
+    string password = "";
+    char ch;
+
+#ifdef _WIN32
+    while ((ch = _getch()) != '\r') {
+        if (ch == '\b') {
+            if (!password.empty()) {
+                password.pop_back();
+                cout << "\b \b";
+            }
+        } else if (ch >= 32) {
+            password += ch;
+            cout << '*';
+        }
+    }
+#else
+    struct termios oldt, newt;
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ECHO | ICANON);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+
+    while ((ch = getchar()) != '\n' && ch != EOF) {
+        if (ch == 127 || ch == '\b') {
+            if (!password.empty()) {
+                password.pop_back();
+                cout << "\b \b";
+                cout.flush();
+            }
+        } else {
+            password += ch;
+            cout << '*';
+            cout.flush();
+        }
+    }
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+#endif
+
+    cout << "\n";
+    return password;
+}
+
+bool isValidEmail(const string& email) {
+    size_t atPos = email.find('@');
+    size_t dotPos = email.rfind('.');
+    return (atPos != string::npos && dotPos != string::npos &&
+            atPos > 0 && dotPos > atPos + 1 && dotPos < email.length() - 1);
+}
+
+bool emailExists(const string& email) {
+    for (const auto& user : userDatabase) {
+        if (user.email == email) return true;
+    }
+    return false;
+}
+
+User* findUser(const string& email) {
+    for (auto& user : userDatabase) {
+        if (user.email == email) return &user;
+    }
+    return nullptr;
+}
+
+// ─── UI Drawing Functions ─────────────────────────────────────────────────────
+
+void drawHeader() {
+    cout << "\n";
+    cout << BG_DARK;
+
+    // Logo
+    cout << "         ";
+    cout << BG_GREEN << FG_WHITE << BOLD;
+    cout << "  $  " << RESET << BG_DARK;
+    cout << "\n\n";
+
+    // Title
+    cout << BG_DARK << FG_WHITE << BOLD;
+    centerText("Welcome Back");
+    cout << "\n" << RESET;
+
+    cout << BG_DARK << FG_GRAY;
+    centerText("Track your expenses with ease");
+    cout << "\n\n" << RESET;
+}
+
+void drawLoginCard() {
+    clearScreen();
+
+    cout << "\n" << BG_DARK;
+
+    // Top border of card
+    cout << "  " << FG_GRAY << "╔";
+    for (int i = 0; i < 54; i++) cout << "═";
+    cout << "╗" << RESET << "\n";
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD;
+    cout << string(54, ' ');
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    // Logo row
+    cout << "  " << FG_GRAY << "║" << BG_CARD;
+    cout << string(24, ' ');
+    cout << BG_GREEN << FG_WHITE << BOLD << " $ " << RESET;
+    cout << BG_CARD << string(27, ' ');
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD;
+    cout << string(54, ' ');
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    // Title
+    cout << "  " << FG_GRAY << "║" << BG_CARD << FG_WHITE << BOLD;
+    centerText("Welcome Back", 54);
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD << FG_GRAY;
+    centerText("Track your expenses with ease", 54);
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD;
+    cout << string(54, ' ');
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    // Divider
+    cout << "  " << FG_GRAY << "╠";
+    for (int i = 0; i < 54; i++) cout << "─";
+    cout << "╣" << RESET << "\n";
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD;
+    cout << string(54, ' ');
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    // Email label
+    cout << "  " << FG_GRAY << "║" << BG_CARD;
+    cout << "   " << FG_WHITE << BOLD << "Email Address" << RESET << BG_CARD;
+    cout << string(38, ' ');
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD;
+    cout << string(54, ' ');
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    // Password label
+    cout << "  " << FG_GRAY << "║" << BG_CARD;
+    cout << "   " << FG_WHITE << BOLD << "Password" << RESET << BG_CARD;
+    cout << string(43, ' ');
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD;
+    cout << string(54, ' ');
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    // Bottom border
+    cout << "  " << FG_GRAY << "╚";
+    for (int i = 0; i < 54; i++) cout << "═";
+    cout << "╝" << RESET << "\n\n";
+}
+
+void showMessage(const string& msg, const string& type = "info") {
+    cout << "\n  ";
+    if (type == "error") {
+        cout << BG_CARD << FG_RED << BOLD << "  ✗ " << msg << "  " << RESET;
+    } else if (type == "success") {
+        cout << BG_CARD << FG_GREEN << BOLD << "  ✓ " << msg << "  " << RESET;
+    } else {
+        cout << BG_CARD << FG_CYAN << BOLD << "  ℹ " << msg << "  " << RESET;
+    }
+    cout << "\n";
+}
+
+// ─── Dashboard (after login) ──────────────────────────────────────────────────
+
+void showDashboard(const User& user) {
+    clearScreen();
+    cout << "\n";
+
+    cout << "  " << FG_GRAY << "╔";
+    for (int i = 0; i < 54; i++) cout << "═";
+    cout << "╗" << RESET << "\n";
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD;
+    cout << "  " << BG_GREEN << FG_WHITE << BOLD << " $ ExpenseTracker " << RESET << BG_CARD;
+    cout << FG_GRAY << DIM << "  Dashboard" << RESET << BG_CARD;
+    cout << string(23, ' ');
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "╠";
+    for (int i = 0; i < 54; i++) cout << "─";
+    cout << "╣" << RESET << "\n";
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD;
+    cout << "  " << FG_GREEN << "✓" << FG_WHITE << BOLD << "  Login Successful!" << RESET << BG_CARD;
+    cout << string(33, ' ');
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD;
+    cout << "  " << FG_GRAY << "Welcome back, " << FG_CYAN << BOLD << user.name << RESET << BG_CARD;
+    int nameLen = 16 + user.name.length();
+    cout << string(54 - nameLen, ' ');
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD;
+    cout << "  " << FG_GRAY << "Email: " << FG_WHITE << user.email << RESET << BG_CARD;
+    int emailLen = 9 + user.email.length();
+    cout << string(54 - emailLen, ' ');
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "╠";
+    for (int i = 0; i < 54; i++) cout << "─";
+    cout << "╣" << RESET << "\n";
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD;
+    cout << "  " << FG_YELLOW << BOLD << "Quick Stats" << RESET << BG_CARD;
+    cout << string(41, ' ');
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD;
+    cout << "  " << FG_WHITE << "💰  Total Balance  " << FG_GREEN << BOLD << "NPR 45,230.00" << RESET << BG_CARD;
+    cout << string(19, ' ');
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD;
+    cout << "  " << FG_WHITE << "📈  This Month     " << FG_RED << BOLD << "NPR -12,480.00" << RESET << BG_CARD;
+    cout << string(18, ' ');
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD;
+    cout << "  " << FG_WHITE << "📊  Transactions   " << FG_CYAN << BOLD << "28 this month" << RESET << BG_CARD;
+    cout << string(19, ' ');
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "╚";
+    for (int i = 0; i < 54; i++) cout << "═";
+    cout << "╝" << RESET << "\n\n";
+
+    cout << "  " << FG_GRAY << "Press Enter to logout..." << RESET;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    cin.get();
+}
+
+// ─── Login Screen ─────────────────────────────────────────────────────────────
+
+bool loginScreen() {
+    string email, password;
+
+    clearScreen();
+    cout << "\n";
+
+    cout << "  " << FG_GRAY << "╔";
+    for (int i = 0; i < 54; i++) cout << "═";
+    cout << "╗" << RESET << "\n";
+
+    // Logo
+    cout << "  " << FG_GRAY << "║" << BG_CARD << string(24, ' ')
+         << BG_GREEN << FG_WHITE << BOLD << " $ " << RESET
+         << BG_CARD << string(27, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+
+    // Title
+    cout << "  " << FG_GRAY << "║" << BG_CARD << FG_WHITE << BOLD;
+    centerText("Welcome Back", 54);
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD << FG_GRAY;
+    centerText("Track your expenses with ease", 54);
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD << string(54, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "╠";
+    for (int i = 0; i < 54; i++) cout << "─";
+    cout << "╣" << RESET << "\n";
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD << string(54, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+
+    // Email input
+    cout << "  " << FG_GRAY << "║" << BG_CARD << "   " << FG_WHITE << BOLD << "Email Address" << RESET << BG_CARD << string(38, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+    cout << "  " << FG_GRAY << "║" << BG_INPUT;
+    cout << "  ✉  " << FG_GRAY;
+    cout.flush();
+    getline(cin, email);
+    // Pad the rest of the line (approximate)
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD << string(54, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+
+    // Password input
+    cout << "  " << FG_GRAY << "║" << BG_CARD << "   " << FG_WHITE << BOLD << "Password" << RESET << BG_CARD << string(43, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+    cout << "  " << FG_GRAY << "║" << BG_INPUT;
+    cout << "  🔒 " << FG_GRAY;
+    cout.flush();
+    password = readPassword();
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD << string(54, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+
+    // Sign In button
+    cout << "  " << FG_GRAY << "║" << BG_CARD << "  " << RESET;
+    cout << BG_GREEN << FG_WHITE << BOLD << "                    Sign In                   " << RESET;
+    cout << BG_CARD << "  " << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD << string(54, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+
+    // Sign Up link
+    cout << "  " << FG_GRAY << "║" << BG_CARD;
+    cout << "       " << FG_GRAY << "Don't have an account? " << RESET;
+    cout << BG_BLUE << FG_WHITE << BOLD << " Sign Up " << RESET;
+    cout << BG_CARD << string(14, ' ');
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD << string(54, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+    cout << "  " << FG_GRAY << "╚";
+    for (int i = 0; i < 54; i++) cout << "═";
+    cout << "╝" << RESET << "\n";
+
+    cout << "\n  " << FG_GRAY << "🔒 Secure and encrypted expense tracking" << RESET << "\n\n";
+
+    // Validate
+    if (email.empty() || password.empty()) {
+        showMessage("Email and password cannot be empty!", "error");
+        cout << "\n  Press Enter to try again...";
+        cin.get();
+        return false;
+    }
+
+    if (!isValidEmail(email)) {
+        showMessage("Invalid email format! Use: you@example.com", "error");
+        cout << "\n  Press Enter to try again...";
+        cin.get();
+        return false;
+    }
+
+    User* user = findUser(email);
+    if (!user) {
+        showMessage("Account not found. Please sign up first!", "error");
+        cout << "\n  Press Enter to continue...";
+        cin.get();
+        return false;
+    }
+
+    if (user->password != password) {
+        showMessage("Incorrect password. Please try again!", "error");
+        cout << "\n  Press Enter to try again...";
+        cin.get();
+        return false;
+    }
+
+    showMessage("Login successful! Loading dashboard...", "success");
+    cout << "\n";
+
+#ifdef _WIN32
+    Sleep(1000);
+#else
+    sleep(1);
+#endif
+
+    showDashboard(*user);
+    return true;
+}
+
+// ─── Sign Up Screen ───────────────────────────────────────────────────────────
+
+bool signUpScreen() {
+    string name, email, password, confirm;
+
+    clearScreen();
+    cout << "\n";
+
+    cout << "  " << FG_GRAY << "╔";
+    for (int i = 0; i < 54; i++) cout << "═";
+    cout << "╗" << RESET << "\n";
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD << string(24, ' ')
+         << BG_GREEN << FG_WHITE << BOLD << " $ " << RESET
+         << BG_CARD << string(27, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD << FG_WHITE << BOLD;
+    centerText("Create Account", 54);
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD << FG_GRAY;
+    centerText("Start tracking your expenses today", 54);
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD << string(54, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+    cout << "  " << FG_GRAY << "╠";
+    for (int i = 0; i < 54; i++) cout << "─";
+    cout << "╣" << RESET << "\n";
+    cout << "  " << FG_GRAY << "║" << BG_CARD << string(54, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+
+    // Full Name
+    cout << "  " << FG_GRAY << "║" << BG_CARD << "   " << FG_WHITE << BOLD << "Full Name" << RESET << BG_CARD << string(42, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+    cout << "  " << FG_GRAY << "║" << BG_INPUT << "  👤 " << FG_GRAY;
+    getline(cin, name);
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD << string(54, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+
+    // Email
+    cout << "  " << FG_GRAY << "║" << BG_CARD << "   " << FG_WHITE << BOLD << "Email Address" << RESET << BG_CARD << string(38, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+    cout << "  " << FG_GRAY << "║" << BG_INPUT << "  ✉  " << FG_GRAY;
+    getline(cin, email);
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD << string(54, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+
+    // Password
+    cout << "  " << FG_GRAY << "║" << BG_CARD << "   " << FG_WHITE << BOLD << "Password" << RESET << BG_CARD << string(43, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+    cout << "  " << FG_GRAY << "║" << BG_INPUT << "  🔒 " << FG_GRAY;
+    password = readPassword();
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD << string(54, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+
+    // Confirm Password
+    cout << "  " << FG_GRAY << "║" << BG_CARD << "   " << FG_WHITE << BOLD << "Confirm Password" << RESET << BG_CARD << string(35, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+    cout << "  " << FG_GRAY << "║" << BG_INPUT << "  🔒 " << FG_GRAY;
+    confirm = readPassword();
+    cout << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD << string(54, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+
+    // Sign Up button
+    cout << "  " << FG_GRAY << "║" << BG_CARD << "  " << RESET;
+    cout << BG_GREEN << FG_WHITE << BOLD << "                   Sign Up                    " << RESET;
+    cout << BG_CARD << "  " << RESET << FG_GRAY << "║\n" << RESET;
+
+    cout << "  " << FG_GRAY << "║" << BG_CARD << string(54, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+    cout << "  " << FG_GRAY << "╚";
+    for (int i = 0; i < 54; i++) cout << "═";
+    cout << "╝" << RESET << "\n\n";
+
+    // Validation
+    if (name.empty() || email.empty() || password.empty()) {
+        showMessage("All fields are required!", "error");
+        cout << "\n  Press Enter to try again...";
+        cin.get();
+        return false;
+    }
+
+    if (!isValidEmail(email)) {
+        showMessage("Invalid email! Use format: you@example.com", "error");
+        cout << "\n  Press Enter to try again...";
+        cin.get();
+        return false;
+    }
+
+    if (emailExists(email)) {
+        showMessage("Email already registered! Please log in.", "error");
+        cout << "\n  Press Enter to continue...";
+        cin.get();
+        return false;
+    }
+
+    if (password.length() < 6) {
+        showMessage("Password must be at least 6 characters!", "error");
+        cout << "\n  Press Enter to try again...";
+        cin.get();
+        return false;
+    }
+
+    if (password != confirm) {
+        showMessage("Passwords do not match!", "error");
+        cout << "\n  Press Enter to try again...";
+        cin.get();
+        return false;
+    }
+
+    // Register user
+    User newUser = {email, password, name};
+    userDatabase.push_back(newUser);
+
+    showMessage("Account created successfully! You can now log in.", "success");
+    cout << "\n  Press Enter to go to login...";
+    cin.get();
+    return true;
+}
+
+// ─── Main Menu ────────────────────────────────────────────────────────────────
+
+void mainMenu() {
+    while (true) {
+        clearScreen();
+        cout << "\n";
+
+        cout << "  " << FG_GRAY << "╔";
+        for (int i = 0; i < 54; i++) cout << "═";
+        cout << "╗" << RESET << "\n";
+
+        cout << "  " << FG_GRAY << "║" << BG_CARD << string(24, ' ')
+             << BG_GREEN << FG_WHITE << BOLD << " $ " << RESET
+             << BG_CARD << string(27, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+
+        cout << "  " << FG_GRAY << "║" << BG_CARD << FG_WHITE << BOLD;
+        centerText("ExpenseTracker", 54);
+        cout << RESET << FG_GRAY << "║\n" << RESET;
+
+        cout << "  " << FG_GRAY << "║" << BG_CARD << FG_GRAY;
+        centerText("Secure and encrypted expense tracking", 54);
+        cout << RESET << FG_GRAY << "║\n" << RESET;
+
+        cout << "  " << FG_GRAY << "║" << BG_CARD << string(54, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+        cout << "  " << FG_GRAY << "╠";
+        for (int i = 0; i < 54; i++) cout << "─";
+        cout << "╣" << RESET << "\n";
+        cout << "  " << FG_GRAY << "║" << BG_CARD << string(54, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+
+        cout << "  " << FG_GRAY << "║" << BG_CARD << "  " << FG_GREEN << BOLD << "[ 1 ]" << FG_WHITE << "  Sign In to your account" << RESET << BG_CARD << string(21, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+        cout << "  " << FG_GRAY << "║" << BG_CARD << string(54, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+        cout << "  " << FG_GRAY << "║" << BG_CARD << "  " << FG_BLUE << BOLD << "[ 2 ]" << FG_WHITE << "  Create a new account" << RESET << BG_CARD << string(25, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+        cout << "  " << FG_GRAY << "║" << BG_CARD << string(54, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+        cout << "  " << FG_GRAY << "║" << BG_CARD << "  " << FG_RED << BOLD << "[ 3 ]" << FG_WHITE << "  Exit" << RESET << BG_CARD << string(41, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+        cout << "  " << FG_GRAY << "║" << BG_CARD << string(54, ' ') << RESET << FG_GRAY << "║\n" << RESET;
+        cout << "  " << FG_GRAY << "╚";
+        for (int i = 0; i < 54; i++) cout << "═";
+        cout << "╝" << RESET << "\n\n";
+
+        cout << "  " << FG_CYAN << "Enter your choice: " << RESET;
+
+        string choice;
+        getline(cin, choice);
+
+        if (choice == "1") {
+            loginScreen();
+        } else if (choice == "2") {
+            signUpScreen();
+        } else if (choice == "3") {
+            clearScreen();
+            cout << "\n\n";
+            cout << "  " << FG_GREEN << BOLD << "  Thank you for using ExpenseTracker!" << RESET << "\n";
+            cout << "  " << FG_GRAY << "  Goodbye 👋" << RESET << "\n\n";
+            break;
+        } else {
+            showMessage("Invalid choice! Enter 1, 2, or 3.", "error");
+            cout << "  Press Enter to continue...";
+            cin.get();
+        }
+    }
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
+int main() {
+    // Enable ANSI escape codes on Windows
+#ifdef _WIN32
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    DWORD dwMode = 0;
+    GetConsoleMode(hOut, &dwMode);
+    SetConsoleMode(hOut, dwMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+#endif
+
+    // Seed with a demo user
+    userDatabase.push_back({"demo@example.com", "demo123", "Demo User"});
+
+    mainMenu();
+    return 0;
+}
