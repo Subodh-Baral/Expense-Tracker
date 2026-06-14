@@ -6,6 +6,7 @@ using namespace std;
 class database{
     private:
     sqlite3 *db;
+    bool createUserTable();
     public:
     database(string file);
     ~database();
