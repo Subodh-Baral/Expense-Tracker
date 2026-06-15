@@ -10,5 +10,6 @@ class database{
     public:
     database(string file);
     ~database();
+    bool registerUser(const string& username,const string& email,const string& password);
 };
 #endif
