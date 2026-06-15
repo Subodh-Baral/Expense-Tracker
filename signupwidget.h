@@ -9,6 +9,7 @@
 #include <QPushButton>
 #include <QCheckBox>
 #include <QGraphicsDropShadowEffect>
+#include <QMessageBox>        
 #include "widgets.h"
 
 class SignUpWidget : public QWidget {
@@ -19,6 +20,10 @@ public:
 
 signals:
     void switchToLogin();
+    void accountCreated();     
+
+private slots:
+    void onSignUpClicked();    
 
 private:
     QLineEdit* nameEdit    = nullptr;

@@ -344,6 +344,12 @@ CMakeFiles/ExpenseTracker.dir/ExpenseTracker_autogen/mocs_compilation.cpp.o: \
  /usr/include/qt6/QtWidgets/qabstractbutton.h \
  /usr/include/qt6/QtWidgets/QGraphicsDropShadowEffect \
  /usr/include/qt6/QtWidgets/qgraphicseffect.h \
+ /usr/include/qt6/QtWidgets/QMessageBox \
+ /usr/include/qt6/QtWidgets/qmessagebox.h \
+ /usr/include/qt6/QtWidgets/qdialog.h \
+ /usr/include/qt6/QtWidgets/qdialogbuttonbox.h \
+ /usr/include/qt6/QtCore/QRegularExpression \
+ /usr/include/qt6/QtCore/qregularexpression.h \
  /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/../../../widgets.h \
  /usr/include/qt6/QtGui/QPainter /usr/include/qt6/QtGui/qpainter.h \
  /usr/include/qt6/QtGui/QPainterPath \
@@ -382,9 +388,14 @@ CMakeFiles/ExpenseTracker.dir/ExpenseTracker_autogen/mocs_compilation.cpp.o: \
  /usr/include/qt6/QtCore/q20algorithm.h \
  /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/moc_mainwindow.cpp \
  /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/../../../mainwindow.h \
+ /usr/include/qt6/QtWidgets/QMainWindow \
+ /usr/include/qt6/QtWidgets/qmainwindow.h \
+ /usr/include/qt6/QtWidgets/qtabwidget.h \
  /usr/include/qt6/QtWidgets/QStackedWidget \
  /usr/include/qt6/QtWidgets/qstackedwidget.h \
- /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/moc_signupwidget.cpp \
+ /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/../../../loginwidget.h \
  /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/../../../signupwidget.h \
  /usr/include/qt6/QtWidgets/QCheckBox \
- /usr/include/qt6/QtWidgets/qcheckbox.h
+ /usr/include/qt6/QtWidgets/qcheckbox.h \
+ /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/moc_signupwidget.cpp \
+ /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/../../../signupwidget.h

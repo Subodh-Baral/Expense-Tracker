@@ -1,11 +1,11 @@
 #include "loginwidget.h"
+#include "database.h"
 
 LoginWidget::LoginWidget(QWidget* parent) : QWidget(parent) {
     auto* mainLayout = new QVBoxLayout(this);
     mainLayout->setAlignment(Qt::AlignCenter);
     mainLayout->setContentsMargins(0, 0, 0, 0);
 
-    // ── Card ──
     auto* card = new CardWidget(this);
     card->setFixedSize(340, 480);
 
@@ -21,7 +21,6 @@ LoginWidget::LoginWidget(QWidget* parent) : QWidget(parent) {
     cardLayout->setContentsMargins(36, 36, 36, 36);
     cardLayout->setSpacing(0);
 
-    // Icon
     auto* icon = new AppIconWidget;
     auto* iconRow = new QHBoxLayout;
     iconRow->addStretch();
@@ -30,7 +29,6 @@ LoginWidget::LoginWidget(QWidget* parent) : QWidget(parent) {
     cardLayout->addLayout(iconRow);
     cardLayout->addSpacing(18);
 
-    // Title
     auto* title = new QLabel("Welcome Back");
     title->setAlignment(Qt::AlignCenter);
     title->setStyleSheet("color:#FFFFFF;font-size:24px;font-weight:700;"
@@ -38,7 +36,6 @@ LoginWidget::LoginWidget(QWidget* parent) : QWidget(parent) {
     cardLayout->addWidget(title);
     cardLayout->addSpacing(6);
 
-    // Subtitle
     auto* subtitle = new QLabel("Track your expenses with ease");
     subtitle->setAlignment(Qt::AlignCenter);
     subtitle->setStyleSheet("color:#8A9BB0;font-size:13px;"
@@ -46,14 +43,12 @@ LoginWidget::LoginWidget(QWidget* parent) : QWidget(parent) {
     cardLayout->addWidget(subtitle);
     cardLayout->addSpacing(24);
 
-    // Email label
     auto* emailLabel = new QLabel("Email Address");
     emailLabel->setStyleSheet("color:#C8D6E5;font-size:13px;font-weight:600;"
                               "font-family:'Segoe UI',sans-serif;");
     cardLayout->addWidget(emailLabel);
     cardLayout->addSpacing(6);
 
-    // Email input
     emailEdit = new QLineEdit;
     emailEdit->setPlaceholderText("you@example.com");
     emailEdit->setFixedHeight(46);
@@ -69,50 +64,46 @@ LoginWidget::LoginWidget(QWidget* parent) : QWidget(parent) {
     cardLayout->addWidget(emailEdit);
     cardLayout->addSpacing(14);
 
-    // Password label
     auto* passLabel = new QLabel("Password");
     passLabel->setStyleSheet("color:#C8D6E5;font-size:13px;font-weight:600;"
                              "font-family:'Segoe UI',sans-serif;");
     cardLayout->addWidget(passLabel);
     cardLayout->addSpacing(6);
 
-    // Password input
     passwordEdit = new QLineEdit;
     passwordEdit->setEchoMode(QLineEdit::Password);
-    passwordEdit->setText("........");
     passwordEdit->setFixedHeight(46);
     passwordEdit->setStyleSheet(R"(
         QLineEdit {
             background:rgba(255,255,255,0.07); border:1.5px solid rgba(255,255,255,0.15);
             border-radius:10px; color:#C8D6E5;
             font-size:14px; font-family:'Segoe UI',sans-serif;
-            padding:0 44px 0 14px;
+            padding:0 42px 0 14px;
         }
         QLineEdit:focus { border-color:#00D296; background:rgba(255,255,255,0.10); }
     )");
 
-    // Eye toggle
-    auto* toggleBtn = new QPushButton("👁", passwordEdit);
-    toggleBtn->setFixedSize(34, 34);
+    auto* toggleBtn = new QPushButton("👁");
+    toggleBtn->setFixedSize(28, 28);
     toggleBtn->setCursor(Qt::PointingHandCursor);
-    toggleBtn->setStyleSheet(R"(
-        QPushButton { background:transparent; border:none;
-                      color:#8A9BB0; font-size:15px; }
-        QPushButton:hover { color:#C8D6E5; }
-    )");
-    toggleBtn->move(passwordEdit->width() - 40, 6);
+    toggleBtn->setStyleSheet("QPushButton{background:transparent;border:none;"
+                             "color:#8A9BB0;font-size:13px;}"
+                             "QPushButton:hover{color:#C8D6E5;}");
+    toggleBtn->setParent(passwordEdit);
+    toggleBtn->move(234, 9);
+    toggleBtn->show();
 
     bool* visible = new bool(false);
     connect(toggleBtn, &QPushButton::clicked, this, [=]() mutable {
         *visible = !*visible;
         passwordEdit->setEchoMode(*visible ? QLineEdit::Normal
                                            : QLineEdit::Password);
+        toggleBtn->setText(*visible ? "🙈" : "👁");
     });
 
     cardLayout->addWidget(passwordEdit);
     cardLayout->addSpacing(22);
 
-    // Sign In button
     auto* signInBtn = new QPushButton("Sign In");
     signInBtn->setFixedHeight(48);
     signInBtn->setCursor(Qt::PointingHandCursor);
@@ -136,7 +127,6 @@ LoginWidget::LoginWidget(QWidget* parent) : QWidget(parent) {
     cardLayout->addWidget(signInBtn);
     cardLayout->addSpacing(16);
 
-    // Don't have an account? Sign Up
     auto* bottomRow = new QHBoxLayout;
     bottomRow->setAlignment(Qt::AlignCenter);
     bottomRow->setSpacing(8);
@@ -162,7 +152,6 @@ LoginWidget::LoginWidget(QWidget* parent) : QWidget(parent) {
     bottomRow->addWidget(signUpBtn);
     cardLayout->addLayout(bottomRow);
 
-    // Footer
     auto* footer = new QLabel("Secure and encrypted expense tracking");
     footer->setAlignment(Qt::AlignCenter);
     footer->setStyleSheet("color:#3A4A5A;font-size:12px;"
@@ -171,6 +160,37 @@ LoginWidget::LoginWidget(QWidget* parent) : QWidget(parent) {
     mainLayout->addWidget(footer);
     mainLayout->setAlignment(footer, Qt::AlignHCenter);
     
-    // Connect Sign Up button to emit signal
     connect(signUpBtn, &QPushButton::clicked, this, &LoginWidget::switchToSignUp);
+    connect(signInBtn, &QPushButton::clicked, this, &LoginWidget::onSignInClicked);
+}
+
+void LoginWidget::onSignInClicked() {
+    QString email = emailEdit->text().trimmed();
+    QString password = passwordEdit->text();
+
+    if (email.isEmpty() || password.isEmpty()) {
+        QMessageBox::warning(this, "Error", "Please fill in all fields.");
+        return;
+    }
+
+    if (!isValidEmail(email)) {
+        QMessageBox::warning(this, "Error", "Please enter a valid email address.");
+        return;
+    }
+
+    if (!Database::instance().emailExists(email)) {
+        QMessageBox::warning(this, "Error", "No account found with this email.");
+        return;
+    }
+
+    if (Database::instance().validateLogin(email, password)) {
+        emit loginSuccessful();
+    } else {
+        QMessageBox::warning(this, "Error", "Incorrect password.");
+    }
+}
+
+bool LoginWidget::isValidEmail(const QString& email) {
+    QRegularExpression regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    return regex.match(email).hasMatch();
 }

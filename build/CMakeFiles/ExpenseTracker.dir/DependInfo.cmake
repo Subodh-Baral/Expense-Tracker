@@ -10,6 +10,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "" "ExpenseTracker_autogen/timestamp" "custom" "ExpenseTracker_autogen/deps"
   "/home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/mocs_compilation.cpp" "CMakeFiles/ExpenseTracker.dir/ExpenseTracker_autogen/mocs_compilation.cpp.o" "gcc" "CMakeFiles/ExpenseTracker.dir/ExpenseTracker_autogen/mocs_compilation.cpp.o.d"
+  "/home/sb7/Expense-Tracker/database.cpp" "CMakeFiles/ExpenseTracker.dir/database.cpp.o" "gcc" "CMakeFiles/ExpenseTracker.dir/database.cpp.o.d"
   "/home/sb7/Expense-Tracker/loginwidget.cpp" "CMakeFiles/ExpenseTracker.dir/loginwidget.cpp.o" "gcc" "CMakeFiles/ExpenseTracker.dir/loginwidget.cpp.o.d"
   "/home/sb7/Expense-Tracker/main.cpp" "CMakeFiles/ExpenseTracker.dir/main.cpp.o" "gcc" "CMakeFiles/ExpenseTracker.dir/main.cpp.o.d"
   "/home/sb7/Expense-Tracker/mainwindow.cpp" "CMakeFiles/ExpenseTracker.dir/mainwindow.cpp.o" "gcc" "CMakeFiles/ExpenseTracker.dir/mainwindow.cpp.o.d"

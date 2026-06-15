@@ -149,13 +149,28 @@ CMakeFiles/ExpenseTracker.dir/signupwidget.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/ExpenseTracker.dir/signupwidget.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/sb7/Expense-Tracker/signupwidget.cpp -o CMakeFiles/ExpenseTracker.dir/signupwidget.cpp.s
 
+CMakeFiles/ExpenseTracker.dir/database.cpp.o: CMakeFiles/ExpenseTracker.dir/flags.make
+CMakeFiles/ExpenseTracker.dir/database.cpp.o: /home/sb7/Expense-Tracker/database.cpp
+CMakeFiles/ExpenseTracker.dir/database.cpp.o: CMakeFiles/ExpenseTracker.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/sb7/Expense-Tracker/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/ExpenseTracker.dir/database.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/ExpenseTracker.dir/database.cpp.o -MF CMakeFiles/ExpenseTracker.dir/database.cpp.o.d -o CMakeFiles/ExpenseTracker.dir/database.cpp.o -c /home/sb7/Expense-Tracker/database.cpp
+
+CMakeFiles/ExpenseTracker.dir/database.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/ExpenseTracker.dir/database.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/sb7/Expense-Tracker/database.cpp > CMakeFiles/ExpenseTracker.dir/database.cpp.i
+
+CMakeFiles/ExpenseTracker.dir/database.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/ExpenseTracker.dir/database.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/sb7/Expense-Tracker/database.cpp -o CMakeFiles/ExpenseTracker.dir/database.cpp.s
+
 # Object files for target ExpenseTracker
 ExpenseTracker_OBJECTS = \
 "CMakeFiles/ExpenseTracker.dir/ExpenseTracker_autogen/mocs_compilation.cpp.o" \
 "CMakeFiles/ExpenseTracker.dir/main.cpp.o" \
 "CMakeFiles/ExpenseTracker.dir/mainwindow.cpp.o" \
 "CMakeFiles/ExpenseTracker.dir/loginwidget.cpp.o" \
-"CMakeFiles/ExpenseTracker.dir/signupwidget.cpp.o"
+"CMakeFiles/ExpenseTracker.dir/signupwidget.cpp.o" \
+"CMakeFiles/ExpenseTracker.dir/database.cpp.o"
 
 # External object files for target ExpenseTracker
 ExpenseTracker_EXTERNAL_OBJECTS =
@@ -165,15 +180,17 @@ ExpenseTracker: CMakeFiles/ExpenseTracker.dir/main.cpp.o
 ExpenseTracker: CMakeFiles/ExpenseTracker.dir/mainwindow.cpp.o
 ExpenseTracker: CMakeFiles/ExpenseTracker.dir/loginwidget.cpp.o
 ExpenseTracker: CMakeFiles/ExpenseTracker.dir/signupwidget.cpp.o
+ExpenseTracker: CMakeFiles/ExpenseTracker.dir/database.cpp.o
 ExpenseTracker: CMakeFiles/ExpenseTracker.dir/build.make
 ExpenseTracker: CMakeFiles/ExpenseTracker.dir/compiler_depend.ts
 ExpenseTracker: /usr/lib64/libQt6Widgets.so.6.10.3
+ExpenseTracker: /usr/lib64/libQt6Sql.so.6.10.3
 ExpenseTracker: /usr/lib64/libQt6Gui.so.6.10.3
 ExpenseTracker: /usr/lib64/libGLX.so
 ExpenseTracker: /usr/lib64/libOpenGL.so
 ExpenseTracker: /usr/lib64/libQt6Core.so.6.10.3
 ExpenseTracker: CMakeFiles/ExpenseTracker.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/sb7/Expense-Tracker/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable ExpenseTracker"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/sb7/Expense-Tracker/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Linking CXX executable ExpenseTracker"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/ExpenseTracker.dir/link.txt --verbose=$(VERBOSE)
 	/usr/bin/cmake -E copy_if_different /home/sb7/Expense-Tracker/bg_left.jpg /home/sb7/Expense-Tracker/build/bg_left.jpg
 	/usr/bin/cmake -E copy_if_different /home/sb7/Expense-Tracker/bg_right.jpg /home/sb7/Expense-Tracker/build/bg_right.jpg

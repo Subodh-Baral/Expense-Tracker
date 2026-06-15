@@ -483,7 +483,42 @@
 		"/usr/lib64/cmake/Qt6Widgets/Qt6WidgetsAdditionalTargetInfo.cmake",
 		"/usr/lib64/cmake/Qt6Widgets/Qt6WidgetsMacros.cmake",
 		"/usr/lib64/cmake/Qt6Widgets/Qt6WidgetsPlugins.cmake",
-		"/usr/lib64/cmake/Qt6Widgets/Qt6WidgetsVersionlessAliasTargets.cmake"
+		"/usr/lib64/cmake/Qt6Widgets/Qt6WidgetsVersionlessAliasTargets.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6SqlConfigVersion.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6SqlConfigVersionImpl.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6SqlConfig.cmake",
+		"/usr/share/cmake/Modules/CMakeFindDependencyMacro.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6SqlDependencies.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6SqlTargets.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6SqlTargets-relwithdebinfo.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6SqlAdditionalTargetInfo.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6SqlPlugins.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6QIBaseDriverPluginConfig.cmake",
+		"/usr/share/cmake/Modules/CMakeFindDependencyMacro.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6QIBaseDriverPluginTargets.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6QIBaseDriverPluginTargets-relwithdebinfo.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6QIBaseDriverPluginAdditionalTargetInfo.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6QMYSQLDriverPluginConfig.cmake",
+		"/usr/share/cmake/Modules/CMakeFindDependencyMacro.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6QMYSQLDriverPluginTargets.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6QMYSQLDriverPluginTargets-relwithdebinfo.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6QMYSQLDriverPluginAdditionalTargetInfo.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6QODBCDriverPluginConfig.cmake",
+		"/usr/share/cmake/Modules/CMakeFindDependencyMacro.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6QODBCDriverPluginTargets.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6QODBCDriverPluginTargets-relwithdebinfo.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6QODBCDriverPluginAdditionalTargetInfo.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6QPSQLDriverPluginConfig.cmake",
+		"/usr/share/cmake/Modules/CMakeFindDependencyMacro.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6QPSQLDriverPluginTargets.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6QPSQLDriverPluginTargets-relwithdebinfo.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6QPSQLDriverPluginAdditionalTargetInfo.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6QSQLiteDriverPluginConfig.cmake",
+		"/usr/share/cmake/Modules/CMakeFindDependencyMacro.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6QSQLiteDriverPluginTargets.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6QSQLiteDriverPluginTargets-relwithdebinfo.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6QSQLiteDriverPluginAdditionalTargetInfo.cmake",
+		"/usr/lib64/cmake/Qt6Sql/Qt6SqlVersionlessAliasTargets.cmake"
 	],
 	"CMAKE_SOURCE_DIR" : "/home/sb7/Expense-Tracker",
 	"CROSS_CONFIG" : false,
@@ -491,6 +526,12 @@
 	"DEP_FILE_RULE_NAME" : "ExpenseTracker_autogen/timestamp",
 	"HEADERS" : 
 	[
+		[
+			"/home/sb7/Expense-Tracker/database.h",
+			"MU",
+			"EWIEGA46WW/moc_database.cpp",
+			null
+		],
 		[
 			"/home/sb7/Expense-Tracker/loginwidget.h",
 			"MU",
@@ -513,7 +554,14 @@
 	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
 	"INCLUDE_DIR" : "/home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/include",
 	"MOC_COMPILATION_FILE" : "/home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/mocs_compilation.cpp",
-	"MOC_DEFINITIONS" : [ "QT_CORE_LIB", "QT_GUI_LIB", "QT_NO_DEBUG", "QT_WIDGETS_LIB" ],
+	"MOC_DEFINITIONS" : 
+	[
+		"QT_CORE_LIB",
+		"QT_GUI_LIB",
+		"QT_NO_DEBUG",
+		"QT_SQL_LIB",
+		"QT_WIDGETS_LIB"
+	],
 	"MOC_DEPEND_FILTERS" : 
 	[
 		[
@@ -528,6 +576,7 @@
 		"/usr/lib64/qt6/mkspecs/linux-g++",
 		"/usr/include/qt6/QtGui",
 		"/usr/include/qt6/QtWidgets",
+		"/usr/include/qt6/QtSql",
 		"/usr/include",
 		"/usr/include/c++/15",
 		"/usr/include/c++/15/x86_64-redhat-linux",
@@ -568,6 +617,7 @@
 	"SETTINGS_FILE" : "/home/sb7/Expense-Tracker/build/CMakeFiles/ExpenseTracker_autogen.dir/AutogenUsed.txt",
 	"SOURCES" : 
 	[
+		[ "/home/sb7/Expense-Tracker/database.cpp", "MU", null ],
 		[ "/home/sb7/Expense-Tracker/loginwidget.cpp", "MU", null ],
 		[ "/home/sb7/Expense-Tracker/main.cpp", "MU", null ],
 		[ "/home/sb7/Expense-Tracker/mainwindow.cpp", "MU", null ],

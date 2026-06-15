@@ -8,6 +8,8 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QGraphicsDropShadowEffect>
+#include <QMessageBox>
+#include <QRegularExpression>
 #include "widgets.h"
 
 class LoginWidget : public QWidget {
@@ -18,10 +20,16 @@ public:
 
 signals:
     void switchToSignUp();
+    void loginSuccessful();
+
+private slots:
+    void onSignInClicked();
 
 private:
     QLineEdit* emailEdit    = nullptr;
     QLineEdit* passwordEdit = nullptr;
+    
+    bool isValidEmail(const QString& email);
 };
 
 #endif

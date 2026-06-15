@@ -3,6 +3,8 @@ ExpenseTracker_autogen/timestamp: \
 	/home/sb7/Expense-Tracker/build/CMakeFiles/3.31.11/CMakeCXXCompiler.cmake \
 	/home/sb7/Expense-Tracker/build/CMakeFiles/3.31.11/CMakeSystem.cmake \
 	/home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/moc_predefs.h \
+	/home/sb7/Expense-Tracker/database.cpp \
+	/home/sb7/Expense-Tracker/database.h \
 	/home/sb7/Expense-Tracker/loginwidget.cpp \
 	/home/sb7/Expense-Tracker/loginwidget.h \
 	/home/sb7/Expense-Tracker/main.cpp \
@@ -278,6 +280,7 @@ ExpenseTracker_autogen/timestamp: \
 	/usr/include/locale.h \
 	/usr/include/pthread.h \
 	/usr/include/qt6/QtCore/QDir \
+	/usr/include/qt6/QtCore/QRegularExpression \
 	/usr/include/qt6/QtCore/q17memory.h \
 	/usr/include/qt6/QtCore/q20functional.h \
 	/usr/include/qt6/QtCore/q20iterator.h \
@@ -364,6 +367,7 @@ ExpenseTracker_autogen/timestamp: \
 	/usr/include/qt6/QtCore/qprocessordetection.h \
 	/usr/include/qt6/QtCore/qrect.h \
 	/usr/include/qt6/QtCore/qrefcount.h \
+	/usr/include/qt6/QtCore/qregularexpression.h \
 	/usr/include/qt6/QtCore/qscopedpointer.h \
 	/usr/include/qt6/QtCore/qscopeguard.h \
 	/usr/include/qt6/QtCore/qset.h \
@@ -460,6 +464,8 @@ ExpenseTracker_autogen/timestamp: \
 	/usr/include/qt6/QtWidgets/QHBoxLayout \
 	/usr/include/qt6/QtWidgets/QLabel \
 	/usr/include/qt6/QtWidgets/QLineEdit \
+	/usr/include/qt6/QtWidgets/QMainWindow \
+	/usr/include/qt6/QtWidgets/QMessageBox \
 	/usr/include/qt6/QtWidgets/QPushButton \
 	/usr/include/qt6/QtWidgets/QStackedWidget \
 	/usr/include/qt6/QtWidgets/QVBoxLayout \
@@ -467,6 +473,8 @@ ExpenseTracker_autogen/timestamp: \
 	/usr/include/qt6/QtWidgets/qabstractbutton.h \
 	/usr/include/qt6/QtWidgets/qboxlayout.h \
 	/usr/include/qt6/QtWidgets/qcheckbox.h \
+	/usr/include/qt6/QtWidgets/qdialog.h \
+	/usr/include/qt6/QtWidgets/qdialogbuttonbox.h \
 	/usr/include/qt6/QtWidgets/qframe.h \
 	/usr/include/qt6/QtWidgets/qgraphicseffect.h \
 	/usr/include/qt6/QtWidgets/qgridlayout.h \
@@ -474,9 +482,12 @@ ExpenseTracker_autogen/timestamp: \
 	/usr/include/qt6/QtWidgets/qlayout.h \
 	/usr/include/qt6/QtWidgets/qlayoutitem.h \
 	/usr/include/qt6/QtWidgets/qlineedit.h \
+	/usr/include/qt6/QtWidgets/qmainwindow.h \
+	/usr/include/qt6/QtWidgets/qmessagebox.h \
 	/usr/include/qt6/QtWidgets/qpushbutton.h \
 	/usr/include/qt6/QtWidgets/qsizepolicy.h \
 	/usr/include/qt6/QtWidgets/qstackedwidget.h \
+	/usr/include/qt6/QtWidgets/qtabwidget.h \
 	/usr/include/qt6/QtWidgets/qtwidgets-config.h \
 	/usr/include/qt6/QtWidgets/qtwidgetsexports.h \
 	/usr/include/qt6/QtWidgets/qtwidgetsglobal.h \
@@ -802,6 +813,35 @@ ExpenseTracker_autogen/timestamp: \
 	/usr/lib64/cmake/Qt6GuiTools/Qt6GuiToolsTargets-relwithdebinfo.cmake \
 	/usr/lib64/cmake/Qt6GuiTools/Qt6GuiToolsTargets.cmake \
 	/usr/lib64/cmake/Qt6GuiTools/Qt6GuiToolsVersionlessTargets.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6QIBaseDriverPluginAdditionalTargetInfo.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6QIBaseDriverPluginConfig.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6QIBaseDriverPluginTargets-relwithdebinfo.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6QIBaseDriverPluginTargets.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6QMYSQLDriverPluginAdditionalTargetInfo.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6QMYSQLDriverPluginConfig.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6QMYSQLDriverPluginTargets-relwithdebinfo.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6QMYSQLDriverPluginTargets.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6QODBCDriverPluginAdditionalTargetInfo.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6QODBCDriverPluginConfig.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6QODBCDriverPluginTargets-relwithdebinfo.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6QODBCDriverPluginTargets.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6QPSQLDriverPluginAdditionalTargetInfo.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6QPSQLDriverPluginConfig.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6QPSQLDriverPluginTargets-relwithdebinfo.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6QPSQLDriverPluginTargets.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6QSQLiteDriverPluginAdditionalTargetInfo.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6QSQLiteDriverPluginConfig.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6QSQLiteDriverPluginTargets-relwithdebinfo.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6QSQLiteDriverPluginTargets.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6SqlAdditionalTargetInfo.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6SqlConfig.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6SqlConfigVersion.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6SqlConfigVersionImpl.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6SqlDependencies.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6SqlPlugins.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6SqlTargets-relwithdebinfo.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6SqlTargets.cmake \
+	/usr/lib64/cmake/Qt6Sql/Qt6SqlVersionlessAliasTargets.cmake \
 	/usr/lib64/cmake/Qt6Widgets/Qt6WidgetsAdditionalTargetInfo.cmake \
 	/usr/lib64/cmake/Qt6Widgets/Qt6WidgetsConfig.cmake \
 	/usr/lib64/cmake/Qt6Widgets/Qt6WidgetsConfigVersion.cmake \

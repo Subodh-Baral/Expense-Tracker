@@ -7,17 +7,18 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
+# Add Sql here
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Sql)
 
-# List ALL your source files
+# Add database files here
 add_executable(ExpenseTracker 
     main.cpp
     mainwindow.cpp
     loginwidget.cpp
     signupwidget.cpp
+    database.cpp
 )
 
-# Copy images to build directory
 add_custom_command(TARGET ExpenseTracker POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${CMAKE_SOURCE_DIR}/bg_left.jpg
@@ -27,4 +28,5 @@ add_custom_command(TARGET ExpenseTracker POST_BUILD
         ${CMAKE_CURRENT_BINARY_DIR}/bg_right.jpg
 )
 
-target_link_libraries(ExpenseTracker PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets)
+# Add Qt6::Sql here
+target_link_libraries(ExpenseTracker PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Sql)

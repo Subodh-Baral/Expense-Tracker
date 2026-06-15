@@ -5,6 +5,8 @@ file(REMOVE_RECURSE
   "ExpenseTracker_autogen"
   "CMakeFiles/ExpenseTracker.dir/ExpenseTracker_autogen/mocs_compilation.cpp.o"
   "CMakeFiles/ExpenseTracker.dir/ExpenseTracker_autogen/mocs_compilation.cpp.o.d"
+  "CMakeFiles/ExpenseTracker.dir/database.cpp.o"
+  "CMakeFiles/ExpenseTracker.dir/database.cpp.o.d"
   "CMakeFiles/ExpenseTracker.dir/loginwidget.cpp.o"
   "CMakeFiles/ExpenseTracker.dir/loginwidget.cpp.o.d"
   "CMakeFiles/ExpenseTracker.dir/main.cpp.o"

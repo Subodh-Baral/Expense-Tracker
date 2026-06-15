@@ -1,11 +1,11 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "widgets.h"
+#include <QMainWindow>
 #include <QStackedWidget>
-
-class LoginWidget;
-class SignUpWidget;
+#include "widgets.h"
+#include "loginwidget.h"
+#include "signupwidget.h"
 
 class MainWindow : public BackgroundWidget {
     Q_OBJECT
@@ -16,6 +16,7 @@ public:
 private slots:
     void showLogin();
     void showSignUp();
+    void onLoginSuccessful();
 
 private:
     QStackedWidget* stackedWidget;
