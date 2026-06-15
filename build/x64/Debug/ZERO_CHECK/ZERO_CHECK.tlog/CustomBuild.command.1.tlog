@@ -1,0 +1,10 @@
+^C:\USERS\ACER\ONEDRIVE\DOCUMENTS\EXPENSE_TRACKER\EXPENSE-TRACKER\BUILD\CMAKEFILES\E0A9B36CC4859945C1C625792D3C089F\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/acer/OneDrive/Documents/expense_tracker/Expense-Tracker -BC:/Users/acer/OneDrive/Documents/expense_tracker/Expense-Tracker/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/acer/OneDrive/Documents/expense_tracker/Expense-Tracker/build/ExpenseTracker.slnx
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\acer\OneDrive\Documents\expense_tracker\Expense-Tracker\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\acer\OneDrive\Documents\expense_tracker\Expense-Tracker\database.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\acer\OneDrive\Documents\expense_tracker\Expense-Tracker\sqlite3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\acer\OneDrive\Documents\expense_tracker\Expense-Tracker\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{F7C167A4-9539-3BF8-9EAD-69119E35DBBC}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

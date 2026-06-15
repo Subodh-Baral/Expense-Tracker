@@ -1,0 +1,3 @@
+C:/Users/acer/OneDrive/Documents/expense_tracker/Expense-Tracker/build/CMakeFiles/app.dir
+C:/Users/acer/OneDrive/Documents/expense_tracker/Expense-Tracker/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/acer/OneDrive/Documents/expense_tracker/Expense-Tracker/build/CMakeFiles/ZERO_CHECK.dir
