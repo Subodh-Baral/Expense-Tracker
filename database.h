@@ -15,6 +15,7 @@ public:
 private:
     Database() = default;
     QSqlDatabase db;
+    QString hashPassword(const QString& password);
 };
 
 #endif

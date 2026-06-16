@@ -3,6 +3,7 @@
 #include <QSqlError>
 #include <QDebug>
 #include <QRegularExpression>
+#include <QCryptographicHash>
 
 Database& Database::instance() {
     static Database inst;
@@ -36,12 +37,20 @@ bool Database::initialize() {
     return true;
 }
 
+QString Database::hashPassword(const QString& password) {
+    QByteArray hash = QCryptographicHash::hash(
+        password.toUtf8(),
+        QCryptographicHash::Sha256
+    );
+    return QString(hash.toHex());
+}
+
 bool Database::registerUser(const QString& name, const QString& email, const QString& password) {
     QSqlQuery query(db);
     query.prepare("INSERT INTO users (name, email, password) VALUES (:name, :email, :password)");
     query.bindValue(":name", name);
     query.bindValue(":email", email);
-    query.bindValue(":password", password);
+    query.bindValue(":password", hashPassword(password));
 
     if (!query.exec()) {
         qDebug() << "Registration failed:" << query.lastError().text();
@@ -54,7 +63,7 @@ bool Database::validateLogin(const QString& email, const QString& password) {
     QSqlQuery query(db);
     query.prepare("SELECT id FROM users WHERE email = :email AND password = :password");
     query.bindValue(":email", email);
-    query.bindValue(":password", password);
+    query.bindValue(":password", hashPassword(password));
 
     if (!query.exec()) {
         qDebug() << "Login query failed:" << query.lastError().text();

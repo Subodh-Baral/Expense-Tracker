@@ -1,4 +1,2 @@
-*.exe
-*.o
-*.out
-*.db
+build/
+expense_tracker.db
