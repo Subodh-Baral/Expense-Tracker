@@ -321,33 +321,33 @@ CMakeFiles/ExpenseTracker.dir/signupwidget.cpp.o: \
  /usr/include/qt6/QtGui/qfontvariableaxis.h \
  /usr/include/qt6/QtWidgets/qsizepolicy.h \
  /usr/include/qt6/QtGui/qcursor.h /usr/include/qt6/QtGui/qbitmap.h \
+ /usr/include/qt6/QtWidgets/QLineEdit \
+ /usr/include/qt6/QtWidgets/qlineedit.h \
+ /usr/include/qt6/QtWidgets/qframe.h /usr/include/qt6/QtWidgets/qwidget.h \
+ /usr/include/qt6/QtGui/qtextcursor.h \
+ /usr/include/qt6/QtGui/qtextdocument.h /usr/include/qt6/QtCore/qurl.h \
+ /usr/include/qt6/QtGui/qtextformat.h /usr/include/qt6/QtGui/qpen.h \
+ /usr/include/qt6/QtGui/qtextoption.h \
+ /usr/include/qt6/QtWidgets/QPushButton \
+ /usr/include/qt6/QtWidgets/qpushbutton.h \
+ /usr/include/qt6/QtWidgets/qabstractbutton.h \
+ /usr/include/qt6/QtWidgets/QLabel /usr/include/qt6/QtWidgets/qlabel.h \
+ /usr/include/qt6/QtGui/qpicture.h /usr/include/qt6/QtCore/qiodevice.h \
  /usr/include/qt6/QtWidgets/QVBoxLayout \
  /usr/include/qt6/QtWidgets/qboxlayout.h \
  /usr/include/qt6/QtWidgets/qlayout.h \
  /usr/include/qt6/QtWidgets/qlayoutitem.h \
  /usr/include/qt6/QtWidgets/qboxlayout.h \
  /usr/include/qt6/QtWidgets/qgridlayout.h \
- /usr/include/qt6/QtWidgets/QHBoxLayout /usr/include/qt6/QtWidgets/QLabel \
- /usr/include/qt6/QtWidgets/qlabel.h /usr/include/qt6/QtWidgets/qframe.h \
- /usr/include/qt6/QtWidgets/qwidget.h /usr/include/qt6/QtGui/qpicture.h \
- /usr/include/qt6/QtCore/qiodevice.h \
- /usr/include/qt6/QtGui/qtextdocument.h /usr/include/qt6/QtCore/qurl.h \
- /usr/include/qt6/QtWidgets/QLineEdit \
- /usr/include/qt6/QtWidgets/qlineedit.h \
- /usr/include/qt6/QtGui/qtextcursor.h \
- /usr/include/qt6/QtGui/qtextformat.h /usr/include/qt6/QtGui/qpen.h \
- /usr/include/qt6/QtGui/qtextoption.h \
- /usr/include/qt6/QtWidgets/QPushButton \
- /usr/include/qt6/QtWidgets/qpushbutton.h \
- /usr/include/qt6/QtWidgets/qabstractbutton.h \
- /usr/include/qt6/QtWidgets/QCheckBox \
- /usr/include/qt6/QtWidgets/qcheckbox.h \
- /usr/include/qt6/QtWidgets/QGraphicsDropShadowEffect \
- /usr/include/qt6/QtWidgets/qgraphicseffect.h \
+ /usr/include/qt6/QtWidgets/QHBoxLayout \
  /usr/include/qt6/QtWidgets/QMessageBox \
  /usr/include/qt6/QtWidgets/qmessagebox.h \
  /usr/include/qt6/QtWidgets/qdialog.h \
  /usr/include/qt6/QtWidgets/qdialogbuttonbox.h \
+ /usr/include/qt6/QtCore/QRegularExpression \
+ /usr/include/qt6/QtCore/qregularexpression.h \
+ /usr/include/qt6/QtWidgets/QGraphicsDropShadowEffect \
+ /usr/include/qt6/QtWidgets/qgraphicseffect.h \
  /home/sb7/Expense-Tracker/widgets.h /usr/include/qt6/QtGui/QPainter \
  /usr/include/qt6/QtGui/qpainter.h /usr/include/qt6/QtGui/QPainterPath \
  /usr/include/qt6/QtGui/qpainterpath.h /usr/include/qt6/QtGui/QPixmap \
@@ -386,4 +386,6 @@ CMakeFiles/ExpenseTracker.dir/signupwidget.cpp.o: \
  /usr/include/qt6/QtSql/qtsqlglobal.h \
  /usr/include/qt6/QtSql/qtsql-config.h \
  /usr/include/qt6/QtSql/qtsqlexports.h \
- /usr/include/qt6/QtCore/qmetaobject.h
+ /usr/include/qt6/QtCore/qmetaobject.h /usr/include/qt6/QtCore/QList \
+ /usr/include/qt6/QtCore/qlist.h /usr/include/qt6/QtCore/QMap \
+ /usr/include/qt6/QtCore/qmap.h

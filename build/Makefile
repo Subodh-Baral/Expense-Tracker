@@ -179,6 +179,30 @@ ExpenseTracker_autogen/mocs_compilation.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ExpenseTracker.dir/build.make CMakeFiles/ExpenseTracker.dir/ExpenseTracker_autogen/mocs_compilation.cpp.s
 .PHONY : ExpenseTracker_autogen/mocs_compilation.cpp.s
 
+dashboard.o: dashboard.cpp.o
+.PHONY : dashboard.o
+
+# target to build an object file
+dashboard.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ExpenseTracker.dir/build.make CMakeFiles/ExpenseTracker.dir/dashboard.cpp.o
+.PHONY : dashboard.cpp.o
+
+dashboard.i: dashboard.cpp.i
+.PHONY : dashboard.i
+
+# target to preprocess a source file
+dashboard.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ExpenseTracker.dir/build.make CMakeFiles/ExpenseTracker.dir/dashboard.cpp.i
+.PHONY : dashboard.cpp.i
+
+dashboard.s: dashboard.cpp.s
+.PHONY : dashboard.s
+
+# target to generate assembly for a file
+dashboard.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ExpenseTracker.dir/build.make CMakeFiles/ExpenseTracker.dir/dashboard.cpp.s
+.PHONY : dashboard.cpp.s
+
 database.o: database.cpp.o
 .PHONY : database.o
 
@@ -313,6 +337,9 @@ help:
 	@echo "... ExpenseTracker_autogen/mocs_compilation.o"
 	@echo "... ExpenseTracker_autogen/mocs_compilation.i"
 	@echo "... ExpenseTracker_autogen/mocs_compilation.s"
+	@echo "... dashboard.o"
+	@echo "... dashboard.i"
+	@echo "... dashboard.s"
 	@echo "... database.o"
 	@echo "... database.i"
 	@echo "... database.s"

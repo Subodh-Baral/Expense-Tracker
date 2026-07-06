@@ -1,8 +1,8 @@
 CMakeFiles/ExpenseTracker.dir/ExpenseTracker_autogen/mocs_compilation.cpp.o: \
  /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/mocs_compilation.cpp \
  /usr/include/stdc-predef.h \
- /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/moc_loginwidget.cpp \
- /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/../../../loginwidget.h \
+ /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/moc_dashboard.cpp \
+ /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/../../../dashboard.h \
  /usr/include/qt6/QtWidgets/QWidget /usr/include/qt6/QtWidgets/qwidget.h \
  /usr/include/qt6/QtWidgets/qtwidgetsglobal.h \
  /usr/include/qt6/QtGui/qtguiglobal.h /usr/include/qt6/QtCore/qglobal.h \
@@ -334,31 +334,58 @@ CMakeFiles/ExpenseTracker.dir/ExpenseTracker_autogen/mocs_compilation.cpp.o: \
  /usr/include/qt6/QtWidgets/qwidget.h /usr/include/qt6/QtGui/qpicture.h \
  /usr/include/qt6/QtCore/qiodevice.h \
  /usr/include/qt6/QtGui/qtextdocument.h /usr/include/qt6/QtCore/qurl.h \
- /usr/include/qt6/QtWidgets/QLineEdit \
- /usr/include/qt6/QtWidgets/qlineedit.h \
- /usr/include/qt6/QtGui/qtextcursor.h \
- /usr/include/qt6/QtGui/qtextformat.h /usr/include/qt6/QtGui/qpen.h \
- /usr/include/qt6/QtGui/qtextoption.h \
  /usr/include/qt6/QtWidgets/QPushButton \
  /usr/include/qt6/QtWidgets/qpushbutton.h \
  /usr/include/qt6/QtWidgets/qabstractbutton.h \
- /usr/include/qt6/QtWidgets/QGraphicsDropShadowEffect \
- /usr/include/qt6/QtWidgets/qgraphicseffect.h \
+ /usr/include/qt6/QtWidgets/QFrame /usr/include/qt6/QtWidgets/qframe.h \
+ /usr/include/qt6/QtWidgets/QScrollArea \
+ /usr/include/qt6/QtWidgets/qscrollarea.h \
+ /usr/include/qt6/QtWidgets/qabstractscrollarea.h \
+ /usr/include/qt6/QtWidgets/QStackedWidget \
+ /usr/include/qt6/QtWidgets/qstackedwidget.h \
+ /usr/include/qt6/QtWidgets/QProgressBar \
+ /usr/include/qt6/QtWidgets/qprogressbar.h \
+ /usr/include/qt6/QtGui/QPainter /usr/include/qt6/QtGui/qpainter.h \
+ /usr/include/qt6/QtGui/qtextoption.h /usr/include/qt6/QtGui/qpen.h \
+ /usr/include/qt6/QtGui/QPainterPath \
+ /usr/include/qt6/QtGui/qpainterpath.h /usr/include/qt6/QtCore/QMap \
+ /usr/include/qt6/QtCore/qmap.h /usr/include/qt6/QtCore/QList \
+ /usr/include/qt6/QtCore/qlist.h /usr/include/qt6/QtWidgets/QButtonGroup \
+ /usr/include/qt6/QtWidgets/qbuttongroup.h /usr/include/qt6/QtCore/QDate \
+ /usr/include/qt6/QtCore/qdatetime.h /usr/include/qt6/QtCore/qcalendar.h \
+ /usr/include/qt6/QtCore/qlocale.h /usr/include/qt6/QtCore/QLocale \
+ /usr/include/qt6/QtCore/qlocale.h \
+ /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/../../../database.h \
+ /usr/include/qt6/QtCore/QString /usr/include/qt6/QtCore/qstring.h \
+ /usr/include/qt6/QtSql/QSqlDatabase \
+ /usr/include/qt6/QtSql/qsqldatabase.h \
+ /usr/include/qt6/QtSql/qtsqlglobal.h \
+ /usr/include/qt6/QtSql/qtsql-config.h \
+ /usr/include/qt6/QtSql/qtsqlexports.h \
+ /usr/include/qt6/QtCore/qmetaobject.h \
+ /usr/include/qt6/QtGui/qtextcursor.h \
+ /usr/include/qt6/QtGui/qtextformat.h \
+ /usr/include/qt6/QtCore/qtmochelpers.h \
+ /usr/include/qt6/QtCore/qtmocconstants.h \
+ /usr/include/qt6/QtCore/q20algorithm.h \
+ /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/moc_loginwidget.cpp \
+ /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/../../../loginwidget.h \
+ /usr/include/qt6/QtWidgets/QLineEdit \
+ /usr/include/qt6/QtWidgets/qlineedit.h \
  /usr/include/qt6/QtWidgets/QMessageBox \
  /usr/include/qt6/QtWidgets/qmessagebox.h \
  /usr/include/qt6/QtWidgets/qdialog.h \
  /usr/include/qt6/QtWidgets/qdialogbuttonbox.h \
  /usr/include/qt6/QtCore/QRegularExpression \
  /usr/include/qt6/QtCore/qregularexpression.h \
+ /usr/include/qt6/QtWidgets/QGraphicsDropShadowEffect \
+ /usr/include/qt6/QtWidgets/qgraphicseffect.h \
  /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/../../../widgets.h \
- /usr/include/qt6/QtGui/QPainter /usr/include/qt6/QtGui/qpainter.h \
- /usr/include/qt6/QtGui/QPainterPath \
- /usr/include/qt6/QtGui/qpainterpath.h /usr/include/qt6/QtGui/QPixmap \
- /usr/include/qt6/QtGui/qpixmap.h /usr/include/qt6/QtCore/QDir \
- /usr/include/qt6/QtCore/qdir.h /usr/include/qt6/QtCore/qdirlisting.h \
+ /usr/include/qt6/QtGui/QPixmap /usr/include/qt6/QtGui/qpixmap.h \
+ /usr/include/qt6/QtCore/QDir /usr/include/qt6/QtCore/qdir.h \
+ /usr/include/qt6/QtCore/qdirlisting.h \
  /usr/include/qt6/QtCore/qfiledevice.h \
- /usr/include/qt6/QtCore/qdatetime.h /usr/include/qt6/QtCore/qcalendar.h \
- /usr/include/qt6/QtCore/qlocale.h /usr/include/qt6/QtCore/qfile.h \
+ /usr/include/qt6/QtCore/qdatetime.h /usr/include/qt6/QtCore/qfile.h \
  /usr/include/c++/15/filesystem /usr/include/c++/15/bits/fs_fwd.h \
  /usr/include/c++/15/bits/fs_path.h /usr/include/c++/15/locale \
  /usr/include/c++/15/bits/locale_facets.h /usr/include/c++/15/cwctype \
@@ -383,19 +410,11 @@ CMakeFiles/ExpenseTracker.dir/ExpenseTracker_autogen/mocs_compilation.cpp.o: \
  /usr/include/qt6/QtCore/qfileinfo.h /usr/include/qt6/QtCore/qtimezone.h \
  /usr/include/qt6/QtGui/QLinearGradient /usr/include/qt6/QtGui/qbrush.h \
  /usr/include/qt6/QtGui/QRadialGradient \
- /usr/include/qt6/QtCore/qtmochelpers.h \
- /usr/include/qt6/QtCore/qtmocconstants.h \
- /usr/include/qt6/QtCore/q20algorithm.h \
  /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/moc_mainwindow.cpp \
  /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/../../../mainwindow.h \
  /usr/include/qt6/QtWidgets/QMainWindow \
  /usr/include/qt6/QtWidgets/qmainwindow.h \
  /usr/include/qt6/QtWidgets/qtabwidget.h \
- /usr/include/qt6/QtWidgets/QStackedWidget \
- /usr/include/qt6/QtWidgets/qstackedwidget.h \
- /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/../../../loginwidget.h \
- /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/../../../signupwidget.h \
- /usr/include/qt6/QtWidgets/QCheckBox \
- /usr/include/qt6/QtWidgets/qcheckbox.h \
+ /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/../../../dashboard.h \
  /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/moc_signupwidget.cpp \
  /home/sb7/Expense-Tracker/build/ExpenseTracker_autogen/EWIEGA46WW/../../../signupwidget.h

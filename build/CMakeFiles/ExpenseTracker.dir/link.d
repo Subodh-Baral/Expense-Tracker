@@ -7,6 +7,7 @@ ExpenseTracker: \
   CMakeFiles/ExpenseTracker.dir/mainwindow.cpp.o \
   CMakeFiles/ExpenseTracker.dir/loginwidget.cpp.o \
   CMakeFiles/ExpenseTracker.dir/signupwidget.cpp.o \
+  CMakeFiles/ExpenseTracker.dir/dashboard.cpp.o \
   CMakeFiles/ExpenseTracker.dir/database.cpp.o \
   /usr/lib64/libQt6Widgets.so.6.10.3 \
   /usr/lib64/libQt6Sql.so.6.10.3 \
@@ -90,6 +91,8 @@ CMakeFiles/ExpenseTracker.dir/mainwindow.cpp.o:
 CMakeFiles/ExpenseTracker.dir/loginwidget.cpp.o:
 
 CMakeFiles/ExpenseTracker.dir/signupwidget.cpp.o:
+
+CMakeFiles/ExpenseTracker.dir/dashboard.cpp.o:
 
 CMakeFiles/ExpenseTracker.dir/database.cpp.o:
 

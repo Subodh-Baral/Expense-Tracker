@@ -84,16 +84,16 @@ clean: CMakeFiles/ExpenseTracker_autogen.dir/clean
 # Target rules for target CMakeFiles/ExpenseTracker.dir
 
 # All Build rule for target.
-CMakeFiles/ExpenseTracker.dir/all: CMakeFiles/ExpenseTracker_autogen_timestamp_deps.dir/all
 CMakeFiles/ExpenseTracker.dir/all: CMakeFiles/ExpenseTracker_autogen.dir/all
+CMakeFiles/ExpenseTracker.dir/all: CMakeFiles/ExpenseTracker_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ExpenseTracker.dir/build.make CMakeFiles/ExpenseTracker.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ExpenseTracker.dir/build.make CMakeFiles/ExpenseTracker.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/sb7/Expense-Tracker/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8 "Built target ExpenseTracker"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/sb7/Expense-Tracker/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9 "Built target ExpenseTracker"
 .PHONY : CMakeFiles/ExpenseTracker.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/ExpenseTracker.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/sb7/Expense-Tracker/build/CMakeFiles 9
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/sb7/Expense-Tracker/build/CMakeFiles 10
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/ExpenseTracker.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sb7/Expense-Tracker/build/CMakeFiles 0
 .PHONY : CMakeFiles/ExpenseTracker.dir/rule
@@ -105,7 +105,7 @@ ExpenseTracker: CMakeFiles/ExpenseTracker.dir/rule
 # codegen rule for target.
 CMakeFiles/ExpenseTracker.dir/codegen: CMakeFiles/ExpenseTracker_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ExpenseTracker.dir/build.make CMakeFiles/ExpenseTracker.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/sb7/Expense-Tracker/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8 "Finished codegen for target ExpenseTracker"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/sb7/Expense-Tracker/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9 "Finished codegen for target ExpenseTracker"
 .PHONY : CMakeFiles/ExpenseTracker.dir/codegen
 
 # clean rule for target.
@@ -152,7 +152,7 @@ CMakeFiles/ExpenseTracker_autogen_timestamp_deps.dir/clean:
 CMakeFiles/ExpenseTracker_autogen.dir/all: CMakeFiles/ExpenseTracker_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ExpenseTracker_autogen.dir/build.make CMakeFiles/ExpenseTracker_autogen.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ExpenseTracker_autogen.dir/build.make CMakeFiles/ExpenseTracker_autogen.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/sb7/Expense-Tracker/build/CMakeFiles --progress-num=9 "Built target ExpenseTracker_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/sb7/Expense-Tracker/build/CMakeFiles --progress-num=10 "Built target ExpenseTracker_autogen"
 .PHONY : CMakeFiles/ExpenseTracker_autogen.dir/all
 
 # Build rule for subdir invocation for target.
@@ -169,7 +169,7 @@ ExpenseTracker_autogen: CMakeFiles/ExpenseTracker_autogen.dir/rule
 # codegen rule for target.
 CMakeFiles/ExpenseTracker_autogen.dir/codegen: CMakeFiles/ExpenseTracker_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ExpenseTracker_autogen.dir/build.make CMakeFiles/ExpenseTracker_autogen.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/sb7/Expense-Tracker/build/CMakeFiles --progress-num=9 "Finished codegen for target ExpenseTracker_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/sb7/Expense-Tracker/build/CMakeFiles --progress-num=10 "Finished codegen for target ExpenseTracker_autogen"
 .PHONY : CMakeFiles/ExpenseTracker_autogen.dir/codegen
 
 # clean rule for target.

@@ -32,78 +32,82 @@ QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 QT_WARNING_DISABLE_GCC("-Wuseless-cast")
 namespace {
-struct qt_meta_tag_ZN12SignUpWidgetE_t {};
+struct qt_meta_tag_ZN12SignupWidgetE_t {};
 } // unnamed namespace
 
-template <> constexpr inline auto SignUpWidget::qt_create_metaobjectdata<qt_meta_tag_ZN12SignUpWidgetE_t>()
+template <> constexpr inline auto SignupWidget::qt_create_metaobjectdata<qt_meta_tag_ZN12SignupWidgetE_t>()
 {
     namespace QMC = QtMocConstants;
     QtMocHelpers::StringRefStorage qt_stringData {
-        "SignUpWidget",
+        "SignupWidget",
         "switchToLogin",
         "",
-        "accountCreated",
+        "signupSuccessful",
+        "name",
+        "email",
         "onSignUpClicked"
     };
 
     QtMocHelpers::UintData qt_methods {
         // Signal 'switchToLogin'
         QtMocHelpers::SignalData<void()>(1, 2, QMC::AccessPublic, QMetaType::Void),
-        // Signal 'accountCreated'
-        QtMocHelpers::SignalData<void()>(3, 2, QMC::AccessPublic, QMetaType::Void),
+        // Signal 'signupSuccessful'
+        QtMocHelpers::SignalData<void(const QString &, const QString &)>(3, 2, QMC::AccessPublic, QMetaType::Void, {{
+            { QMetaType::QString, 4 }, { QMetaType::QString, 5 },
+        }}),
         // Slot 'onSignUpClicked'
-        QtMocHelpers::SlotData<void()>(4, 2, QMC::AccessPrivate, QMetaType::Void),
+        QtMocHelpers::SlotData<void()>(6, 2, QMC::AccessPrivate, QMetaType::Void),
     };
     QtMocHelpers::UintData qt_properties {
     };
     QtMocHelpers::UintData qt_enums {
     };
-    return QtMocHelpers::metaObjectData<SignUpWidget, qt_meta_tag_ZN12SignUpWidgetE_t>(QMC::MetaObjectFlag{}, qt_stringData,
+    return QtMocHelpers::metaObjectData<SignupWidget, qt_meta_tag_ZN12SignupWidgetE_t>(QMC::MetaObjectFlag{}, qt_stringData,
             qt_methods, qt_properties, qt_enums);
 }
-Q_CONSTINIT const QMetaObject SignUpWidget::staticMetaObject = { {
+Q_CONSTINIT const QMetaObject SignupWidget::staticMetaObject = { {
     QMetaObject::SuperData::link<QWidget::staticMetaObject>(),
-    qt_staticMetaObjectStaticContent<qt_meta_tag_ZN12SignUpWidgetE_t>.stringdata,
-    qt_staticMetaObjectStaticContent<qt_meta_tag_ZN12SignUpWidgetE_t>.data,
+    qt_staticMetaObjectStaticContent<qt_meta_tag_ZN12SignupWidgetE_t>.stringdata,
+    qt_staticMetaObjectStaticContent<qt_meta_tag_ZN12SignupWidgetE_t>.data,
     qt_static_metacall,
     nullptr,
-    qt_staticMetaObjectRelocatingContent<qt_meta_tag_ZN12SignUpWidgetE_t>.metaTypes,
+    qt_staticMetaObjectRelocatingContent<qt_meta_tag_ZN12SignupWidgetE_t>.metaTypes,
     nullptr
 } };
 
-void SignUpWidget::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+void SignupWidget::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
-    auto *_t = static_cast<SignUpWidget *>(_o);
+    auto *_t = static_cast<SignupWidget *>(_o);
     if (_c == QMetaObject::InvokeMetaMethod) {
         switch (_id) {
         case 0: _t->switchToLogin(); break;
-        case 1: _t->accountCreated(); break;
+        case 1: _t->signupSuccessful((*reinterpret_cast<std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast<std::add_pointer_t<QString>>(_a[2]))); break;
         case 2: _t->onSignUpClicked(); break;
         default: ;
         }
     }
     if (_c == QMetaObject::IndexOfMethod) {
-        if (QtMocHelpers::indexOfMethod<void (SignUpWidget::*)()>(_a, &SignUpWidget::switchToLogin, 0))
+        if (QtMocHelpers::indexOfMethod<void (SignupWidget::*)()>(_a, &SignupWidget::switchToLogin, 0))
             return;
-        if (QtMocHelpers::indexOfMethod<void (SignUpWidget::*)()>(_a, &SignUpWidget::accountCreated, 1))
+        if (QtMocHelpers::indexOfMethod<void (SignupWidget::*)(const QString & , const QString & )>(_a, &SignupWidget::signupSuccessful, 1))
             return;
     }
 }
 
-const QMetaObject *SignUpWidget::metaObject() const
+const QMetaObject *SignupWidget::metaObject() const
 {
     return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
 
-void *SignUpWidget::qt_metacast(const char *_clname)
+void *SignupWidget::qt_metacast(const char *_clname)
 {
     if (!_clname) return nullptr;
-    if (!strcmp(_clname, qt_staticMetaObjectStaticContent<qt_meta_tag_ZN12SignUpWidgetE_t>.strings))
+    if (!strcmp(_clname, qt_staticMetaObjectStaticContent<qt_meta_tag_ZN12SignupWidgetE_t>.strings))
         return static_cast<void*>(this);
     return QWidget::qt_metacast(_clname);
 }
 
-int SignUpWidget::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+int SignupWidget::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
     _id = QWidget::qt_metacall(_c, _id, _a);
     if (_id < 0)
@@ -122,14 +126,14 @@ int SignUpWidget::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 }
 
 // SIGNAL 0
-void SignUpWidget::switchToLogin()
+void SignupWidget::switchToLogin()
 {
     QMetaObject::activate(this, &staticMetaObject, 0, nullptr);
 }
 
 // SIGNAL 1
-void SignUpWidget::accountCreated()
+void SignupWidget::signupSuccessful(const QString & _t1, const QString & _t2)
 {
-    QMetaObject::activate(this, &staticMetaObject, 1, nullptr);
+    QMetaObject::activate<void>(this, &staticMetaObject, 1, nullptr, _t1, _t2);
 }
 QT_WARNING_POP

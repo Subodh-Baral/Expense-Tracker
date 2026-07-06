@@ -304,10 +304,15 @@ CMakeFiles/ExpenseTracker.dir/database.cpp.o: \
  /usr/include/qt6/QtCore/qalloc.h /usr/include/qt6/QtCore/q23utility.h \
  /usr/include/qt6/QtCore/q20utility.h /usr/include/qt6/QtCore/qobject.h \
  /usr/include/qt6/QtCore/qobject_impl.h \
- /usr/include/qt6/QtCore/qbindingstorage.h \
- /usr/include/qt6/QtSql/QSqlQuery /usr/include/qt6/QtSql/qsqlquery.h \
- /usr/include/qt6/QtSql/qsqldatabase.h /usr/include/qt6/QtSql/QSqlError \
- /usr/include/qt6/QtSql/qsqlerror.h /usr/include/qt6/QtCore/QDebug \
- /usr/include/qt6/QtCore/qdebug.h \
- /usr/include/qt6/QtCore/QRegularExpression \
- /usr/include/qt6/QtCore/qregularexpression.h
+ /usr/include/qt6/QtCore/qbindingstorage.h /usr/include/qt6/QtCore/QList \
+ /usr/include/qt6/QtCore/qlist.h /usr/include/qt6/QtCore/QMap \
+ /usr/include/qt6/QtCore/qmap.h /usr/include/qt6/QtSql/QSqlQuery \
+ /usr/include/qt6/QtSql/qsqlquery.h /usr/include/qt6/QtSql/qsqldatabase.h \
+ /usr/include/qt6/QtSql/QSqlError /usr/include/qt6/QtSql/qsqlerror.h \
+ /usr/include/qt6/QtCore/QDebug /usr/include/qt6/QtCore/qdebug.h \
+ /usr/include/qt6/QtCore/QCryptographicHash \
+ /usr/include/qt6/QtCore/qcryptographichash.h \
+ /usr/include/qt6/QtCore/qspan.h /usr/include/c++/15/cassert \
+ /usr/include/qt6/QtCore/q20iterator.h /usr/include/qt6/QtCore/QDate \
+ /usr/include/qt6/QtCore/qdatetime.h /usr/include/qt6/QtCore/qcalendar.h \
+ /usr/include/qt6/QtCore/qlocale.h

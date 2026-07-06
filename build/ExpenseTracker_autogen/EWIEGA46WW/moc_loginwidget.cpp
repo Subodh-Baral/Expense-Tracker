@@ -40,19 +40,23 @@ template <> constexpr inline auto LoginWidget::qt_create_metaobjectdata<qt_meta_
     namespace QMC = QtMocConstants;
     QtMocHelpers::StringRefStorage qt_stringData {
         "LoginWidget",
-        "switchToSignUp",
-        "",
         "loginSuccessful",
+        "",
+        "name",
+        "email",
+        "switchToSignUp",
         "onSignInClicked"
     };
 
     QtMocHelpers::UintData qt_methods {
-        // Signal 'switchToSignUp'
-        QtMocHelpers::SignalData<void()>(1, 2, QMC::AccessPublic, QMetaType::Void),
         // Signal 'loginSuccessful'
-        QtMocHelpers::SignalData<void()>(3, 2, QMC::AccessPublic, QMetaType::Void),
+        QtMocHelpers::SignalData<void(const QString &, const QString &)>(1, 2, QMC::AccessPublic, QMetaType::Void, {{
+            { QMetaType::QString, 3 }, { QMetaType::QString, 4 },
+        }}),
+        // Signal 'switchToSignUp'
+        QtMocHelpers::SignalData<void()>(5, 2, QMC::AccessPublic, QMetaType::Void),
         // Slot 'onSignInClicked'
-        QtMocHelpers::SlotData<void()>(4, 2, QMC::AccessPrivate, QMetaType::Void),
+        QtMocHelpers::SlotData<void()>(6, 2, QMC::AccessPrivate, QMetaType::Void),
     };
     QtMocHelpers::UintData qt_properties {
     };
@@ -76,16 +80,16 @@ void LoginWidget::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id,
     auto *_t = static_cast<LoginWidget *>(_o);
     if (_c == QMetaObject::InvokeMetaMethod) {
         switch (_id) {
-        case 0: _t->switchToSignUp(); break;
-        case 1: _t->loginSuccessful(); break;
+        case 0: _t->loginSuccessful((*reinterpret_cast<std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast<std::add_pointer_t<QString>>(_a[2]))); break;
+        case 1: _t->switchToSignUp(); break;
         case 2: _t->onSignInClicked(); break;
         default: ;
         }
     }
     if (_c == QMetaObject::IndexOfMethod) {
-        if (QtMocHelpers::indexOfMethod<void (LoginWidget::*)()>(_a, &LoginWidget::switchToSignUp, 0))
+        if (QtMocHelpers::indexOfMethod<void (LoginWidget::*)(const QString & , const QString & )>(_a, &LoginWidget::loginSuccessful, 0))
             return;
-        if (QtMocHelpers::indexOfMethod<void (LoginWidget::*)()>(_a, &LoginWidget::loginSuccessful, 1))
+        if (QtMocHelpers::indexOfMethod<void (LoginWidget::*)()>(_a, &LoginWidget::switchToSignUp, 1))
             return;
     }
 }
@@ -122,13 +126,13 @@ int LoginWidget::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 }
 
 // SIGNAL 0
-void LoginWidget::switchToSignUp()
+void LoginWidget::loginSuccessful(const QString & _t1, const QString & _t2)
 {
-    QMetaObject::activate(this, &staticMetaObject, 0, nullptr);
+    QMetaObject::activate<void>(this, &staticMetaObject, 0, nullptr, _t1, _t2);
 }
 
 // SIGNAL 1
-void LoginWidget::loginSuccessful()
+void LoginWidget::switchToSignUp()
 {
     QMetaObject::activate(this, &staticMetaObject, 1, nullptr);
 }
