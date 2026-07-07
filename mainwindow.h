@@ -3,25 +3,34 @@
 
 #include <QMainWindow>
 #include <QStackedWidget>
-#include "widgets.h"
-#include "loginwidget.h"
-#include "signupwidget.h"
+#include "dashboard.h"
 
-class MainWindow : public BackgroundWidget {
+class LoginWidget;
+class SignupWidget;
+
+class MainWindow : public QMainWindow
+{
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget* parent = nullptr);
-
-private slots:
-    void showLogin();
-    void showSignUp();
-    void onLoginSuccessful();
+    explicit MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
 
 private:
-    QStackedWidget* stackedWidget;
-    LoginWidget* loginWidget;
-    SignUpWidget* signUpWidget;
+    void setupUI();
+    void showLogin();
+    void showDashboard(const QString &name, const QString &email);
+
+    QStackedWidget *stackedWidget;
+    LoginWidget *loginWidget;
+    SignupWidget *signupWidget;
+    Dashboard *dashboardWidget;
+
+private slots:
+    void onLoginSuccessful(const QString &name, const QString &email);
+    void onLogoutRequested();
+    void onSwitchToSignUp();
+    void onSwitchToLogin();
 };
 
 #endif

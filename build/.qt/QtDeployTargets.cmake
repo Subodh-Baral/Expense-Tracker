@@ -1,2 +1,0 @@
-set(__QT_DEPLOY_TARGET_ExpenseTracker_FILE /home/sb7/Expense-Tracker/build/ExpenseTracker)
-set(__QT_DEPLOY_TARGET_ExpenseTracker_TYPE EXECUTABLE)

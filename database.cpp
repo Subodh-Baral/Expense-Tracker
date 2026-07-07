@@ -2,8 +2,10 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDebug>
-#include <QRegularExpression>
 #include <QCryptographicHash>
+#include <QDate>
+
+const double Database::DEFAULT_BUDGET = 10000.0;
 
 Database& Database::instance() {
     static Database inst;
@@ -19,17 +21,45 @@ bool Database::initialize() {
         return false;
     }
 
-    QSqlQuery query(db);
-    bool success = query.exec(
-        "CREATE TABLE IF NOT EXISTS users ("
-        "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-        "name TEXT NOT NULL, "
-        "email TEXT UNIQUE NOT NULL, "
-        "password TEXT NOT NULL)"
-    );
+    QSqlQuery q(db);
 
-    if (!success) {
-        qDebug() << "Table creation error:" << query.lastError().text();
+    // Users table
+    if (!q.exec("CREATE TABLE IF NOT EXISTS users ("
+                "id       INTEGER PRIMARY KEY AUTOINCREMENT,"
+                "name     TEXT    NOT NULL,"
+                "email    TEXT    UNIQUE NOT NULL,"
+                "password TEXT    NOT NULL)")) {
+        qDebug() << "users table error:" << q.lastError().text();
+        return false;
+    }
+
+    // Expenses table
+    if (!q.exec("CREATE TABLE IF NOT EXISTS expenses ("
+                "id          INTEGER PRIMARY KEY AUTOINCREMENT,"
+                "user_id     INTEGER NOT NULL,"
+                "description TEXT    NOT NULL,"
+                "category    TEXT    NOT NULL,"
+                "amount      REAL    NOT NULL,"
+                "date        TEXT    NOT NULL,"
+                "is_income   INTEGER NOT NULL DEFAULT 0,"
+                "FOREIGN KEY(user_id) REFERENCES users(id))")) {
+        qDebug() << "expenses table error:" << q.lastError().text();
+        return false;
+    }
+
+    // Budgets table
+    // base_budget: what the user set for this month
+    // rollover:    surplus carried forward from the previous month
+    if (!q.exec("CREATE TABLE IF NOT EXISTS budgets ("
+                "id          INTEGER PRIMARY KEY AUTOINCREMENT,"
+                "user_id     INTEGER NOT NULL,"
+                "year        INTEGER NOT NULL,"
+                "month       INTEGER NOT NULL,"
+                "base_budget REAL    NOT NULL DEFAULT 10000.0,"
+                "rollover    REAL    NOT NULL DEFAULT 0.0,"
+                "UNIQUE(user_id, year, month),"
+                "FOREIGN KEY(user_id) REFERENCES users(id))")) {
+        qDebug() << "budgets table error:" << q.lastError().text();
         return false;
     }
 
@@ -37,51 +67,348 @@ bool Database::initialize() {
     return true;
 }
 
-QString Database::hashPassword(const QString& password) {
-    QByteArray hash = QCryptographicHash::hash(
-        password.toUtf8(),
-        QCryptographicHash::Sha256
-    );
-    return QString(hash.toHex());
+QString Database::hashPassword(const QString &password) {
+    return QString(QCryptographicHash::hash(
+        password.toUtf8(), QCryptographicHash::Sha256).toHex());
 }
 
-bool Database::registerUser(const QString& name, const QString& email, const QString& password) {
-    QSqlQuery query(db);
-    query.prepare("INSERT INTO users (name, email, password) VALUES (:name, :email, :password)");
-    query.bindValue(":name", name);
-    query.bindValue(":email", email);
-    query.bindValue(":password", hashPassword(password));
-
-    if (!query.exec()) {
-        qDebug() << "Registration failed:" << query.lastError().text();
-        return false;
-    }
+// ── Users ─────────────────────────────────────────────────────────────────────
+bool Database::registerUser(const QString &name, const QString &email, const QString &password) {
+    QSqlQuery q(db);
+    q.prepare("INSERT INTO users (name, email, password) VALUES (:n, :e, :p)");
+    q.bindValue(":n", name);
+    q.bindValue(":e", email);
+    q.bindValue(":p", hashPassword(password));
+    if (!q.exec()) { qDebug() << "registerUser failed:" << q.lastError().text(); return false; }
     return true;
 }
 
-bool Database::validateLogin(const QString& email, const QString& password) {
-    QSqlQuery query(db);
-    query.prepare("SELECT id FROM users WHERE email = :email AND password = :password");
-    query.bindValue(":email", email);
-    query.bindValue(":password", hashPassword(password));
-
-    if (!query.exec()) {
-        qDebug() << "Login query failed:" << query.lastError().text();
-        return false;
-    }
-
-    return query.next();
+bool Database::validateLogin(const QString &email, const QString &password) {
+    QSqlQuery q(db);
+    q.prepare("SELECT id FROM users WHERE email=:e AND password=:p");
+    q.bindValue(":e", email);
+    q.bindValue(":p", hashPassword(password));
+    if (!q.exec()) { qDebug() << "validateLogin failed:" << q.lastError().text(); return false; }
+    return q.next();
 }
 
-bool Database::emailExists(const QString& email) {
-    QSqlQuery query(db);
-    query.prepare("SELECT id FROM users WHERE email = :email");
-    query.bindValue(":email", email);
+bool Database::emailExists(const QString &email) {
+    QSqlQuery q(db);
+    q.prepare("SELECT id FROM users WHERE email=:e");
+    q.bindValue(":e", email);
+    if (!q.exec()) { qDebug() << "emailExists failed:" << q.lastError().text(); return false; }
+    return q.next();
+}
 
-    if (!query.exec()) {
-        qDebug() << "Email check failed:" << query.lastError().text();
-        return false;
+QString Database::getUserName(const QString &email) {
+    QSqlQuery q(db);
+    q.prepare("SELECT name FROM users WHERE email=:e");
+    q.bindValue(":e", email);
+    if (!q.exec() || !q.next()) return QString();
+    return q.value(0).toString();
+}
+
+int Database::getUserId(const QString &email) {
+    QSqlQuery q(db);
+    q.prepare("SELECT id FROM users WHERE email=:e");
+    q.bindValue(":e", email);
+    if (!q.exec() || !q.next()) return -1;
+    return q.value(0).toInt();
+}
+
+// ── Expenses ──────────────────────────────────────────────────────────────────
+bool Database::addExpense(int userId, const QString &description,
+                          const QString &category, double amount,
+                          const QString &date, bool isIncome) {
+    QSqlQuery q(db);
+    q.prepare("INSERT INTO expenses (user_id, description, category, amount, date, is_income)"
+              " VALUES (:uid, :desc, :cat, :amt, :dt, :inc)");
+    q.bindValue(":uid",  userId);
+    q.bindValue(":desc", description);
+    q.bindValue(":cat",  category);
+    q.bindValue(":amt",  amount);
+    q.bindValue(":dt",   date);
+    q.bindValue(":inc",  isIncome ? 1 : 0);
+    if (!q.exec()) { qDebug() << "addExpense failed:" << q.lastError().text(); return false; }
+    return true;
+}
+
+QList<Expense> Database::getExpenses(int userId) {
+    QList<Expense> list;
+    QSqlQuery q(db);
+    q.prepare("SELECT id, user_id, description, category, amount, date, is_income"
+              " FROM expenses WHERE user_id=:uid ORDER BY date DESC, id DESC");
+    q.bindValue(":uid", userId);
+    if (!q.exec()) { qDebug() << "getExpenses failed:" << q.lastError().text(); return list; }
+    while (q.next()) {
+        Expense e;
+        e.id          = q.value(0).toInt();
+        e.userId      = q.value(1).toInt();
+        e.description = q.value(2).toString();
+        e.category    = q.value(3).toString();
+        e.amount      = q.value(4).toDouble();
+        e.date        = q.value(5).toString();
+        e.isIncome    = q.value(6).toInt() != 0;
+        list.append(e);
     }
+    return list;
+}
 
-    return query.next();
+double Database::getTotalIncome(int userId) {
+    QSqlQuery q(db);
+    q.prepare("SELECT COALESCE(SUM(amount),0) FROM expenses WHERE user_id=:uid AND is_income=1");
+    q.bindValue(":uid", userId);
+    if (!q.exec() || !q.next()) return 0.0;
+    return q.value(0).toDouble();
+}
+
+double Database::getTotalExpenses(int userId) {
+    QSqlQuery q(db);
+    q.prepare("SELECT COALESCE(SUM(amount),0) FROM expenses WHERE user_id=:uid AND is_income=0");
+    q.bindValue(":uid", userId);
+    if (!q.exec() || !q.next()) return 0.0;
+    return q.value(0).toDouble();
+}
+
+double Database::getMonthlyExpenses(int userId, int year, int month) {
+    // dates stored as "yyyy-MM-dd" so LIKE 'yyyy-MM-%' works perfectly
+    QString pattern = QString("%1-%2-%")
+                          .arg(year)
+                          .arg(month, 2, 10, QChar('0'));
+    QSqlQuery q(db);
+    q.prepare("SELECT COALESCE(SUM(amount),0) FROM expenses"
+              " WHERE user_id=:uid AND is_income=0 AND date LIKE :pat");
+    q.bindValue(":uid", userId);
+    q.bindValue(":pat", pattern);
+    if (!q.exec() || !q.next()) return 0.0;
+    return q.value(0).toDouble();
+}
+
+// ── Budget ────────────────────────────────────────────────────────────────────
+
+// Ensure a budget row exists for (userId, year, month).
+// Returns the rollover stored there.
+static double ensureBudgetRow(QSqlDatabase &db, int userId, int year, int month,
+                               double defaultBudget = 10000.0)
+{
+    // Try insert with defaults; if already exists, do nothing
+    QSqlQuery ins(db);
+    ins.prepare("INSERT OR IGNORE INTO budgets (user_id, year, month, base_budget, rollover)"
+                " VALUES (:uid, :y, :m, :b, 0.0)");
+    ins.bindValue(":uid", userId);
+    ins.bindValue(":y",   year);
+    ins.bindValue(":m",   month);
+    ins.bindValue(":b",   defaultBudget);
+    ins.exec();
+
+    QSqlQuery sel(db);
+    sel.prepare("SELECT rollover FROM budgets WHERE user_id=:uid AND year=:y AND month=:m");
+    sel.bindValue(":uid", userId);
+    sel.bindValue(":y",   year);
+    sel.bindValue(":m",   month);
+    if (sel.exec() && sel.next()) return sel.value(0).toDouble();
+    return 0.0;
+}
+
+BudgetInfo Database::getBudgetInfo(int userId, int year, int month)
+{
+    ensureBudgetRow(db, userId, year, month);
+
+    QSqlQuery q(db);
+    q.prepare("SELECT base_budget, rollover FROM budgets"
+              " WHERE user_id=:uid AND year=:y AND month=:m");
+    q.bindValue(":uid", userId);
+    q.bindValue(":y",   year);
+    q.bindValue(":m",   month);
+
+    BudgetInfo info{DEFAULT_BUDGET, 0.0, DEFAULT_BUDGET, 0.0, DEFAULT_BUDGET};
+    if (q.exec() && q.next()) {
+        info.baseBudget  = q.value(0).toDouble();
+        info.rollover    = q.value(1).toDouble();
+    }
+    info.totalBudget = info.baseBudget + info.rollover;
+    info.spent       = getMonthlyExpenses(userId, year, month);
+    info.remaining   = info.totalBudget - info.spent;
+    return info;
+}
+
+bool Database::setBaseBudget(int userId, int year, int month, double amount)
+{
+    ensureBudgetRow(db, userId, year, month);
+
+    QSqlQuery q(db);
+    q.prepare("UPDATE budgets SET base_budget=:b"
+              " WHERE user_id=:uid AND year=:y AND month=:m");
+    q.bindValue(":b",   amount);
+    q.bindValue(":uid", userId);
+    q.bindValue(":y",   year);
+    q.bindValue(":m",   month);
+    if (!q.exec()) { qDebug() << "setBaseBudget failed:" << q.lastError().text(); return false; }
+    return true;
+}
+
+// Called on login: walk every completed month that has no rollover yet applied
+// to the next month, compute surplus, and write it as the next month's rollover.
+void Database::processRollover(int userId, int year, int month)
+{
+    // Look at up to 24 past months to catch any gaps
+    QDate current(year, month, 1);
+
+    for (int i = 0; i < 24; i++) {
+        QDate prev  = current.addMonths(-(i + 1));
+        QDate next  = current.addMonths(-i);          // the month AFTER prev
+
+        int py = prev.year(),  pm = prev.month();
+        int ny = next.year(),  nm = next.month();
+
+        // Skip if we've already written a rollover into the next month
+        // (meaning we've processed this transition already)
+        QSqlQuery check(db);
+        check.prepare("SELECT rollover FROM budgets"
+                      " WHERE user_id=:uid AND year=:y AND month=:m");
+        check.bindValue(":uid", userId);
+        check.bindValue(":y",   ny);
+        check.bindValue(":m",   nm);
+
+        double existingRollover = 0.0;
+        bool   nextRowExists    = false;
+        if (check.exec() && check.next()) {
+            nextRowExists    = true;
+            existingRollover = check.value(0).toDouble();
+        }
+
+        // If the next month already has a non-zero rollover, we've done it
+        if (nextRowExists && existingRollover > 0.0) break;
+
+        // Get prev month budget
+        ensureBudgetRow(db, userId, py, pm);
+        BudgetInfo prevInfo = getBudgetInfo(userId, py, pm);
+
+        // Only carry over positive surplus
+        double surplus = prevInfo.remaining;
+        if (surplus <= 0.0) continue;
+
+        // Apply surplus as rollover to the next month
+        ensureBudgetRow(db, userId, ny, nm);
+        QSqlQuery upd(db);
+        upd.prepare("UPDATE budgets SET rollover=:r"
+                    " WHERE user_id=:uid AND year=:y AND month=:m");
+        upd.bindValue(":r",   surplus);
+        upd.bindValue(":uid", userId);
+        upd.bindValue(":y",   ny);
+        upd.bindValue(":m",   nm);
+        upd.exec();
+
+        // Once we find a processed month, stop going further back
+        break;
+    }
+}
+
+QList<Expense> Database::getExpensesOnly(int userId) {
+    QList<Expense> list;
+    QSqlQuery q(db);
+    q.prepare("SELECT id, user_id, description, category, amount, date, is_income"
+              " FROM expenses WHERE user_id=:uid AND is_income=0 ORDER BY date DESC, id DESC");
+    q.bindValue(":uid", userId);
+    if (!q.exec()) { qDebug() << "getExpensesOnly failed:" << q.lastError().text(); return list; }
+    while (q.next()) {
+        Expense e;
+        e.id          = q.value(0).toInt();
+        e.userId      = q.value(1).toInt();
+        e.description = q.value(2).toString();
+        e.category    = q.value(3).toString();
+        e.amount      = q.value(4).toDouble();
+        e.date        = q.value(5).toString();
+        e.isIncome    = false;
+        list.append(e);
+    }
+    return list;
+}
+
+QList<Expense> Database::getMonthlyExpensesOnly(int userId, int year, int month) {
+    QList<Expense> list;
+    QString pattern = QString("%1-%2-%").arg(year).arg(month, 2, 10, QChar('0'));
+    QSqlQuery q(db);
+    q.prepare("SELECT id, user_id, description, category, amount, date, is_income"
+              " FROM expenses WHERE user_id=:uid AND is_income=0 AND date LIKE :pat"
+              " ORDER BY date DESC, id DESC");
+    q.bindValue(":uid", userId);
+    q.bindValue(":pat", pattern);
+    if (!q.exec()) { qDebug() << "getMonthlyExpensesOnly failed:" << q.lastError().text(); return list; }
+    while (q.next()) {
+        Expense e;
+        e.id          = q.value(0).toInt();
+        e.userId      = q.value(1).toInt();
+        e.description = q.value(2).toString();
+        e.category    = q.value(3).toString();
+        e.amount      = q.value(4).toDouble();
+        e.date        = q.value(5).toString();
+        e.isIncome    = false;
+        list.append(e);
+    }
+    return list;
+}
+
+QMap<QString,double> Database::getMonthlyCategoryTotals(int userId, int year, int month) {
+    QMap<QString,double> map;
+    QString pattern = QString("%1-%2-%").arg(year).arg(month, 2, 10, QChar('0'));
+    QSqlQuery q(db);
+    q.prepare("SELECT category, SUM(amount) FROM expenses"
+              " WHERE user_id=:uid AND is_income=0 AND date LIKE :pat"
+              " GROUP BY category ORDER BY SUM(amount) DESC");
+    q.bindValue(":uid", userId);
+    q.bindValue(":pat", pattern);
+    if (!q.exec()) { qDebug() << "getMonthlyCategoryTotals failed:" << q.lastError().text(); return map; }
+    while (q.next())
+        map[q.value(0).toString()] = q.value(1).toDouble();
+    return map;
+}
+
+QMap<QString,double> Database::getAllCategoryTotals(int userId) {
+    QMap<QString,double> map;
+    QSqlQuery q(db);
+    q.prepare("SELECT category, SUM(amount) FROM expenses"
+              " WHERE user_id=:uid AND is_income=0"
+              " GROUP BY category ORDER BY SUM(amount) DESC");
+    q.bindValue(":uid", userId);
+    if (!q.exec()) return map;
+    while (q.next())
+        map[q.value(0).toString()] = q.value(1).toDouble();
+    return map;
+}
+
+// Returns monthly totals for the last N months: list of {year,month,income,expense}
+QList<MonthlyTotal> Database::getMonthlyTotals(int userId, int months) {
+    QList<MonthlyTotal> result;
+    QDate today = QDate::currentDate();
+    for (int i = months-1; i >= 0; i--) {
+        QDate d = today.addMonths(-i);
+        QString pat = QString("%1-%2-%").arg(d.year()).arg(d.month(),2,10,QChar('0'));
+        QSqlQuery qi(db), qe(db);
+        qi.prepare("SELECT COALESCE(SUM(amount),0) FROM expenses"
+                   " WHERE user_id=:uid AND is_income=1 AND date LIKE :pat");
+        qi.bindValue(":uid", userId); qi.bindValue(":pat", pat);
+        qe.prepare("SELECT COALESCE(SUM(amount),0) FROM expenses"
+                   " WHERE user_id=:uid AND is_income=0 AND date LIKE :pat");
+        qe.bindValue(":uid", userId); qe.bindValue(":pat", pat);
+        MonthlyTotal mt;
+        mt.year   = d.year(); mt.month = d.month();
+        mt.income = (qi.exec() && qi.next()) ? qi.value(0).toDouble() : 0.0;
+        mt.expense= (qe.exec() && qe.next()) ? qe.value(0).toDouble() : 0.0;
+        result.append(mt);
+    }
+    return result;
+}
+
+int Database::getExpenseCount(int userId, const QString &category) {
+    QSqlQuery q(db);
+    if (category.isEmpty() || category == "All") {
+        q.prepare("SELECT COUNT(*) FROM expenses WHERE user_id=:uid AND is_income=0");
+        q.bindValue(":uid", userId);
+    } else {
+        q.prepare("SELECT COUNT(*) FROM expenses WHERE user_id=:uid AND is_income=0 AND category=:cat");
+        q.bindValue(":uid", userId); q.bindValue(":cat", category);
+    }
+    if (!q.exec() || !q.next()) return 0;
+    return q.value(0).toInt();
 }

@@ -140,7 +140,7 @@ protected:
 
         p.setPen(QPen(Qt::white, 2));
         p.setFont(QFont("Arial", 20, QFont::Bold));
-        p.drawText(rect(), Qt::AlignCenter, "$");
+        p.drawText(rect(), Qt::AlignCenter, QString::fromUtf8("$"));
     }
 };
 
@@ -154,7 +154,6 @@ static QLineEdit* makeField(const QString& placeholder,
     field->setFixedHeight(46);
     if (password) {
         field->setEchoMode(QLineEdit::Password);
-        field->setText("........");
     }
     field->setStyleSheet(R"(
         QLineEdit {

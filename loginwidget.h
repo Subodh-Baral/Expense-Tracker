@@ -2,34 +2,37 @@
 #define LOGINWIDGET_H
 
 #include <QWidget>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
-#include <QGraphicsDropShadowEffect>
+#include <QLabel>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QMessageBox>
 #include <QRegularExpression>
+#include <QGraphicsDropShadowEffect>
 #include "widgets.h"
+#include "database.h"
 
-class LoginWidget : public QWidget {
+class LoginWidget : public QWidget
+{
     Q_OBJECT
 
 public:
-    explicit LoginWidget(QWidget* parent = nullptr);
+    explicit LoginWidget(QWidget *parent = nullptr);
 
 signals:
+    void loginSuccessful(const QString &name, const QString &email);
     void switchToSignUp();
-    void loginSuccessful();
+
+private:
+    void setupUI();
+    bool isValidEmail(const QString& email);
+
+    QLineEdit *emailEdit;
+    QLineEdit *passwordEdit;
 
 private slots:
     void onSignInClicked();
-
-private:
-    QLineEdit* emailEdit    = nullptr;
-    QLineEdit* passwordEdit = nullptr;
-    
-    bool isValidEmail(const QString& email);
 };
 
 #endif

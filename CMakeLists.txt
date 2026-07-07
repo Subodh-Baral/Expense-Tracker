@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(ExpenseTracker LANGUAGES CXX)
+project(ExpenseTracker)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -7,26 +7,32 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-# Add Sql here
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Sql)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql)
 
-# Add database files here
-add_executable(ExpenseTracker 
+set(SOURCES
     main.cpp
     mainwindow.cpp
     loginwidget.cpp
     signupwidget.cpp
+    dashboard.cpp
     database.cpp
 )
 
-add_custom_command(TARGET ExpenseTracker POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_SOURCE_DIR}/bg_left.jpg
-        ${CMAKE_CURRENT_BINARY_DIR}/bg_left.jpg
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_SOURCE_DIR}/bg_right.jpg
-        ${CMAKE_CURRENT_BINARY_DIR}/bg_right.jpg
+set(HEADERS
+    mainwindow.h
+    loginwidget.h
+    signupwidget.h
+    dashboard.h
+    database.h
+    widgets.h
 )
 
-# Add Qt6::Sql here
-target_link_libraries(ExpenseTracker PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Sql)
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+
+target_link_libraries(${PROJECT_NAME}
+    Qt6::Core
+    Qt6::Widgets
+    Qt6::Sql
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
