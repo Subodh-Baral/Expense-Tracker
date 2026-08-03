@@ -154,13 +154,41 @@ protected:
             double midRad=midAngles[ci].first/16.0*M_PI/180.0;
             double pct=midAngles[ci].second;
             if(pct<5.0){continue;} // skip tiny slices
-            double lx=width()/2.0+cos(midRad)*(sz*0.62);
-            double ly=height()/2.0+sin(midRad)*(sz*0.62);
+            // Stagger the radius so adjacent thin slices (e.g. two 13% slices
+            // next to each other) don't place their labels at the exact same
+            // distance from center and collide.
+            double radiusFactor = (ci%2==0) ? 0.60 : 0.74;
+            double lx=width()/2.0+cos(midRad)*(sz*radiusFactor);
+            double ly=height()/2.0+sin(midRad)*(sz*radiusFactor);
             p.setPen(m_col[ci%m_col.size()]);
             p.setFont(QFont("Segoe UI",9,QFont::Bold));
             QString lbl=QString("%1 %2%").arg(it.key()).arg(pct,0,'f',0);
+            // Size the label box to the ACTUAL rendered text width instead of
+            // a fixed box. A fixed-width box clips text that doesn't fit —
+            // Qt's drawText(QRectF,...) clips by default — and because the
+            // text is centered, clipping trims equal amounts off BOTH ends,
+            // which is what was chopping the leading letter off labels like
+            // "Entertainment" and "Education". Qt::TextDontClip is also
+            // passed as a safety net in case any label is still wider than
+            // the widget itself.
             QFontMetrics fm(p.font());
-            p.drawText(QRectF(lx-50,ly-10,100,20),Qt::AlignCenter,lbl);
+            int textW = fm.horizontalAdvance(lbl) + 12;
+            int textH = fm.height() + 4;
+            QRectF labelRect(lx-textW/2.0, ly-textH/2.0, textW, textH);
+            // A correctly-sized box (above) stops Qt clipping text that's
+            // wider than its own rect, but a label anchored near the
+            // horizontal/vertical extremes (cos/sin near ±1 — e.g. a big
+            // slice pointing due right) can still push part of that rect
+            // past the WIDGET's own edge, which Qt always clips regardless
+            // of drawText's rect. Nudge the rect back inside the widget so
+            // it's never cut off — this is what was still chopping the
+            // start of "Education" even after the box-sizing fix.
+            const double margin=2.0;
+            if(labelRect.left()<margin) labelRect.moveLeft(margin);
+            if(labelRect.right()>width()-margin) labelRect.moveRight(width()-margin);
+            if(labelRect.top()<margin) labelRect.moveTop(margin);
+            if(labelRect.bottom()>height()-margin) labelRect.moveBottom(height()-margin);
+            p.drawText(labelRect, Qt::AlignCenter | Qt::TextDontClip, lbl);
         }
     }
 private:
@@ -190,7 +218,7 @@ protected:
             p.drawLine(pad,y,width()-10,y);
             p.setPen(QColor("#94a3b8")); p.setFont(QFont("Segoe UI",8));
             p.drawText(0,y-8,pad-5,16,Qt::AlignRight|Qt::AlignVCenter,
-                       QString("$%1").arg(int(maxV*i/4)));
+                       QString("₹%1").arg(int(maxV*i/4)));
             p.setPen(QPen(QColor("#f1f5f9"),1));
         }
         auto xOf=[&](int i){return pad+int(i*(W-pad)/(n>1?n-1:1));};
@@ -302,6 +330,6 @@ private:
     QVBoxLayout    *an_catBreakdown=nullptr;
 
     // Settings
-    QLabel *set_base=nullptr,*set_rollover=nullptr,*set_total=nullptr;
+    QLabel *set_base=nullptr,*set_rollover=nullptr,*set_income=nullptr,*set_total=nullptr;
 };
 #endif

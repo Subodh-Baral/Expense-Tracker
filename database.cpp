@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QCryptographicHash>
 #include <QDate>
+#include <QCoreApplication>
 
 const double Database::DEFAULT_BUDGET = 10000.0;
 
@@ -14,7 +15,16 @@ Database& Database::instance() {
 
 bool Database::initialize() {
     db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName("expense_tracker.db");
+
+    // IMPORTANT: use an absolute path tied to the executable's own folder,
+    // not a relative path. A relative "expense_tracker.db" resolves against
+    // whatever directory the app happens to be launched FROM, so running the
+    // binary from two different shells/working-dirs silently creates two
+    // separate database files with different data. Pinning it to the
+    // executable's directory guarantees every launch reads the same file.
+    QString dbPath = QCoreApplication::applicationDirPath() + "/expense_tracker.db";
+    db.setDatabaseName(dbPath);
+    qDebug() << "Using database file:" << dbPath;
 
     if (!db.open()) {
         qDebug() << "Database error:" << db.lastError().text();
@@ -25,13 +35,25 @@ bool Database::initialize() {
 
     // Users table
     if (!q.exec("CREATE TABLE IF NOT EXISTS users ("
-                "id       INTEGER PRIMARY KEY AUTOINCREMENT,"
-                "name     TEXT    NOT NULL,"
-                "email    TEXT    UNIQUE NOT NULL,"
-                "password TEXT    NOT NULL)")) {
+                "id           INTEGER PRIMARY KEY AUTOINCREMENT,"
+                "name         TEXT    NOT NULL,"
+                "email        TEXT    UNIQUE NOT NULL,"
+                "password     TEXT    NOT NULL,"
+                "created_date TEXT)")) {
         qDebug() << "users table error:" << q.lastError().text();
         return false;
     }
+    // Migration: older databases created before this column existed won't
+    // have it. ALTER TABLE fails harmlessly if the column is already there,
+    // so we just ignore that specific error and move on.
+    q.exec("ALTER TABLE users ADD COLUMN created_date TEXT");
+    // Backfill any existing accounts that still have no created_date (either
+    // from the migration above, or from before this feature existed at all)
+    // with today's date. This is a reasonable floor: it means rollover for
+    // those older accounts will only start accumulating from today forward,
+    // rather than fabricating surplus for months before we know about.
+    q.exec(QString("UPDATE users SET created_date='%1' WHERE created_date IS NULL OR created_date=''")
+           .arg(QDate::currentDate().toString("yyyy-MM-dd")));
 
     // Expenses table
     if (!q.exec("CREATE TABLE IF NOT EXISTS expenses ("
@@ -75,10 +97,11 @@ QString Database::hashPassword(const QString &password) {
 // ── Users ─────────────────────────────────────────────────────────────────────
 bool Database::registerUser(const QString &name, const QString &email, const QString &password) {
     QSqlQuery q(db);
-    q.prepare("INSERT INTO users (name, email, password) VALUES (:n, :e, :p)");
+    q.prepare("INSERT INTO users (name, email, password, created_date) VALUES (:n, :e, :p, :c)");
     q.bindValue(":n", name);
     q.bindValue(":e", email);
     q.bindValue(":p", hashPassword(password));
+    q.bindValue(":c", QDate::currentDate().toString("yyyy-MM-dd"));
     if (!q.exec()) { qDebug() << "registerUser failed:" << q.lastError().text(); return false; }
     return true;
 }
@@ -114,6 +137,21 @@ int Database::getUserId(const QString &email) {
     q.bindValue(":e", email);
     if (!q.exec() || !q.next()) return -1;
     return q.value(0).toInt();
+}
+
+// Returns the account's signup date, used to stop rollover calculations
+// from reaching further back than the account actually existed. Falls back
+// to today if somehow missing (shouldn't happen given the migration in
+// initialize(), but keeps this safe regardless).
+QDate Database::getUserCreatedDate(int userId) {
+    QSqlQuery q(db);
+    q.prepare("SELECT created_date FROM users WHERE id=:uid");
+    q.bindValue(":uid", userId);
+    if (q.exec() && q.next()) {
+        QDate d = QDate::fromString(q.value(0).toString(), "yyyy-MM-dd");
+        if (d.isValid()) return d;
+    }
+    return QDate::currentDate();
 }
 
 // ── Expenses ──────────────────────────────────────────────────────────────────
@@ -154,6 +192,28 @@ QList<Expense> Database::getExpenses(int userId) {
     return list;
 }
 
+// If this user has never had an income entry recorded, seed one default
+// income of $10,000 so the dashboard doesn't show $0.00 for new/existing
+// accounts that never had a way to log income. Runs once per user — after
+// the first income row exists (whatever its value), this becomes a no-op.
+void Database::ensureDefaultIncome(int userId) {
+    QSqlQuery check(db);
+    check.prepare("SELECT COUNT(*) FROM expenses WHERE user_id=:uid AND is_income=1");
+    check.bindValue(":uid", userId);
+    if (!check.exec() || !check.next()) return;
+    if (check.value(0).toInt() > 0) return; // already has income history
+
+    QSqlQuery ins(db);
+    ins.prepare("INSERT INTO expenses (user_id, description, category, amount, date, is_income)"
+                " VALUES (:uid, :desc, :cat, :amt, :dt, 1)");
+    ins.bindValue(":uid",  userId);
+    ins.bindValue(":desc", "Initial Income");
+    ins.bindValue(":cat",  "Income");
+    ins.bindValue(":amt",  10000.0);
+    ins.bindValue(":dt",   QDate::currentDate().toString("yyyy-MM-dd"));
+    if (!ins.exec()) qDebug() << "ensureDefaultIncome failed:" << ins.lastError().text();
+}
+
 double Database::getTotalIncome(int userId) {
     QSqlQuery q(db);
     q.prepare("SELECT COALESCE(SUM(amount),0) FROM expenses WHERE user_id=:uid AND is_income=1");
@@ -178,6 +238,19 @@ double Database::getMonthlyExpenses(int userId, int year, int month) {
     QSqlQuery q(db);
     q.prepare("SELECT COALESCE(SUM(amount),0) FROM expenses"
               " WHERE user_id=:uid AND is_income=0 AND date LIKE :pat");
+    q.bindValue(":uid", userId);
+    q.bindValue(":pat", pattern);
+    if (!q.exec() || !q.next()) return 0.0;
+    return q.value(0).toDouble();
+}
+
+double Database::getMonthlyIncome(int userId, int year, int month) {
+    QString pattern = QString("%1-%2-%")
+                          .arg(year)
+                          .arg(month, 2, 10, QChar('0'));
+    QSqlQuery q(db);
+    q.prepare("SELECT COALESCE(SUM(amount),0) FROM expenses"
+              " WHERE user_id=:uid AND is_income=1 AND date LIKE :pat");
     q.bindValue(":uid", userId);
     q.bindValue(":pat", pattern);
     if (!q.exec() || !q.next()) return 0.0;
@@ -221,14 +294,21 @@ BudgetInfo Database::getBudgetInfo(int userId, int year, int month)
     q.bindValue(":y",   year);
     q.bindValue(":m",   month);
 
-    BudgetInfo info{DEFAULT_BUDGET, 0.0, DEFAULT_BUDGET, 0.0, DEFAULT_BUDGET};
+    BudgetInfo info{DEFAULT_BUDGET, 0.0, 0.0, DEFAULT_BUDGET, 0.0, DEFAULT_BUDGET};
     if (q.exec() && q.next()) {
         info.baseBudget  = q.value(0).toDouble();
         info.rollover    = q.value(1).toDouble();
     }
-    info.totalBudget = info.baseBudget + info.rollover;
-    info.spent       = getMonthlyExpenses(userId, year, month);
-    info.remaining   = info.totalBudget - info.spent;
+    // Any income logged in this specific month increases what's available to
+    // spend that month — e.g. a ₹10,000 base budget plus a ₹5,000 income
+    // entry this month means ₹15,000 is available this month. Computed
+    // fresh from the actual income rows each call (same "derive from real
+    // data, don't store a mutable copy" approach as the rollover fix), so
+    // it can never drift out of sync with what was actually logged.
+    info.monthlyIncome = getMonthlyIncome(userId, year, month);
+    info.totalBudget   = info.baseBudget + info.rollover + info.monthlyIncome;
+    info.spent         = getMonthlyExpenses(userId, year, month);
+    info.remaining     = info.totalBudget - info.spent;
     return info;
 }
 
@@ -247,60 +327,52 @@ bool Database::setBaseBudget(int userId, int year, int month, double amount)
     return true;
 }
 
-// Called on login: walk every completed month that has no rollover yet applied
-// to the next month, compute surplus, and write it as the next month's rollover.
+// Called on login. Recomputes the rollover chain from the account's signup
+// month (or 24 months back, whichever is later) up through the given month,
+// walking forward in chronological order.
+//
+// The previous version only ever looked at a single month-to-month step
+// and stopped as soon as it applied one rollover. That meant if the account
+// had accumulated surplus several months back but the very next link in the
+// chain hadn't been recalculated yet, the surplus got stranded partway and
+// never reached the current month — so the dashboard would show this
+// month's budget as if no rollover had happened at all.
+//
+// This version always recomputes the full chain in one pass, in order, so
+// each month's rollover is derived from the ACTUAL leftover of the month
+// before it (which itself already reflects its own correctly-cascaded
+// rollover computed earlier in this same loop). It's idempotent — safe to
+// call on every login — and self-heals even if a backdated expense is
+// added after the fact.
 void Database::processRollover(int userId, int year, int month)
 {
-    // Look at up to 24 past months to catch any gaps
-    QDate current(year, month, 1);
+    constexpr int LOOKBACK_MONTHS = 24;
+    QDate target(year, month, 1);
+    QDate floor = target.addMonths(-LOOKBACK_MONTHS);
 
-    for (int i = 0; i < 24; i++) {
-        QDate prev  = current.addMonths(-(i + 1));
-        QDate next  = current.addMonths(-i);          // the month AFTER prev
+    QDate signup = getUserCreatedDate(userId);
+    QDate signupMonth(signup.year(), signup.month(), 1);
+    QDate start = (signupMonth > floor) ? signupMonth : floor;
 
-        int py = prev.year(),  pm = prev.month();
-        int ny = next.year(),  nm = next.month();
+    QDate cursor = start;
+    while (cursor < target) {
+        QDate nextMonth = cursor.addMonths(1);
 
-        // Skip if we've already written a rollover into the next month
-        // (meaning we've processed this transition already)
-        QSqlQuery check(db);
-        check.prepare("SELECT rollover FROM budgets"
-                      " WHERE user_id=:uid AND year=:y AND month=:m");
-        check.bindValue(":uid", userId);
-        check.bindValue(":y",   ny);
-        check.bindValue(":m",   nm);
+        ensureBudgetRow(db, userId, cursor.year(), cursor.month());
+        BudgetInfo info = getBudgetInfo(userId, cursor.year(), cursor.month());
+        double surplus  = qMax(info.remaining, 0.0);
 
-        double existingRollover = 0.0;
-        bool   nextRowExists    = false;
-        if (check.exec() && check.next()) {
-            nextRowExists    = true;
-            existingRollover = check.value(0).toDouble();
-        }
-
-        // If the next month already has a non-zero rollover, we've done it
-        if (nextRowExists && existingRollover > 0.0) break;
-
-        // Get prev month budget
-        ensureBudgetRow(db, userId, py, pm);
-        BudgetInfo prevInfo = getBudgetInfo(userId, py, pm);
-
-        // Only carry over positive surplus
-        double surplus = prevInfo.remaining;
-        if (surplus <= 0.0) continue;
-
-        // Apply surplus as rollover to the next month
-        ensureBudgetRow(db, userId, ny, nm);
+        ensureBudgetRow(db, userId, nextMonth.year(), nextMonth.month());
         QSqlQuery upd(db);
         upd.prepare("UPDATE budgets SET rollover=:r"
                     " WHERE user_id=:uid AND year=:y AND month=:m");
         upd.bindValue(":r",   surplus);
         upd.bindValue(":uid", userId);
-        upd.bindValue(":y",   ny);
-        upd.bindValue(":m",   nm);
+        upd.bindValue(":y",   nextMonth.year());
+        upd.bindValue(":m",   nextMonth.month());
         upd.exec();
 
-        // Once we find a processed month, stop going further back
-        break;
+        cursor = nextMonth;
     }
 }
 

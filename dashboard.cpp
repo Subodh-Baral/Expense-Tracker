@@ -15,7 +15,7 @@
 
 // ── Currency formatter (USD) ──────────────────────────────────────────────────
 static QString ru(double v){
-    // Format as $1,234.56
+    // Format as ₹1,234.56
     bool neg = v < 0;
     double abs_v = qAbs(v);
     QString s = QString::number(abs_v, 'f', 2);
@@ -23,7 +23,7 @@ static QString ru(double v){
     int dot = s.indexOf('.');
     int insert = dot - 3;
     while(insert > 0){ s.insert(insert, ','); insert -= 3; }
-    return (neg ? "-$" : "$") + s;
+    return (neg ? "-₹" : "₹") + s;
 }
 
 static QColor catColour(const QString &cat){
@@ -65,6 +65,7 @@ void Dashboard::setUserInfo(const QString &name,const QString &email){
     if(userNameLabel)userNameLabel->setText(name);
     if(userEmailLabel)userEmailLabel->setText(email);
     QDate t=QDate::currentDate();
+    Database::instance().ensureDefaultIncome(m_userId);
     Database::instance().processRollover(m_userId,t.year(),t.month());
     refreshDashboard();
 }
@@ -81,7 +82,7 @@ void Dashboard::refreshDashboard(){
     if(dash_expense)dash_expense->setText(ru(exp));
     if(dash_balance){
         QString col=bal<0?"#dc2626":"#0f172a";
-        dash_balance->setStyleSheet(QString("font-size:32px;font-weight:700;color:%1;font-family:'Inter','Segoe UI';").arg(col));
+        dash_balance->setStyleSheet(QString("font-size:32px;font-weight:700;color:%1;font-family:'Inter','Segoe UI';background:transparent;").arg(col));
     }
     QDate t=QDate::currentDate();
     BudgetInfo bi=db.getBudgetInfo(m_userId,t.year(),t.month());
@@ -101,7 +102,7 @@ void Dashboard::refreshDashboard(){
         for(int i=0;i<shown;i++) dash_txList->addWidget(makeExpenseRow(all[i],false));
         if(all.isEmpty()){
             auto*e=new QLabel("No transactions yet");
-            e->setStyleSheet("color:#94a3b8;padding:32px;font-size:13px;");
+            e->setStyleSheet("color:#94a3b8;padding:32px;font-size:13px;background:transparent;");
             e->setAlignment(Qt::AlignCenter); dash_txList->addWidget(e);
         }
         dash_txList->addStretch();
@@ -114,7 +115,7 @@ void Dashboard::refreshDashboard(){
             dash_catList->addWidget(makeCategoryProgressRow(it.key(),it.value(),total,catColour(it.key())));
         if(cats.isEmpty()){
             auto*e=new QLabel("No expenses yet");
-            e->setStyleSheet("color:#94a3b8;font-size:13px;font-family:'Inter','Segoe UI';"); dash_catList->addWidget(e);}
+            e->setStyleSheet("color:#94a3b8;font-size:13px;font-family:'Inter','Segoe UI';background:transparent;"); dash_catList->addWidget(e);}
         dash_catList->addStretch();
     }
 }
@@ -141,11 +142,11 @@ void Dashboard::refreshExpenses(const QString &filter){
             QVBoxLayout*vl=new QVBoxLayout(card); vl->setContentsMargins(14,14,14,14); vl->setSpacing(4);
             QLabel*dot=new QLabel(); dot->setFixedSize(12,12);
             dot->setStyleSheet(QString("background:%1;border-radius:6px;").arg(col.name())); vl->addWidget(dot);
-            QLabel*nm=new QLabel(it.key()); nm->setStyleSheet("color:#64748b;font-size:12px;font-family:'Inter','Segoe UI';"); vl->addWidget(nm);
+            QLabel*nm=new QLabel(it.key()); nm->setStyleSheet("color:#64748b;font-size:12px;font-family:'Inter','Segoe UI';background:transparent;"); vl->addWidget(nm);
             QLabel*am=new QLabel(ru(it.value()));
-            am->setStyleSheet("color:#0f172a;font-size:15px;font-weight:700;font-family:'Inter','Segoe UI';"); vl->addWidget(am);
+            am->setStyleSheet("color:#0f172a;font-size:15px;font-weight:700;font-family:'Inter','Segoe UI';background:transparent;"); vl->addWidget(am);
             QLabel*cn=new QLabel(QString("%1 transactions").arg(cnt));
-            cn->setStyleSheet("color:#94a3b8;font-size:11px;font-family:'Inter','Segoe UI';"); vl->addWidget(cn);
+            cn->setStyleSheet("color:#94a3b8;font-size:11px;font-family:'Inter','Segoe UI';background:transparent;"); vl->addWidget(cn);
             card->setCursor(Qt::PointingHandCursor);
             QString catName=it.key();
             auto*btn=new QPushButton(card); btn->setGeometry(0,0,165,105);
@@ -154,24 +155,52 @@ void Dashboard::refreshExpenses(const QString &filter){
             ((QHBoxLayout*)exp_catCards->layout())->addWidget(card);}
         ((QHBoxLayout*)exp_catCards->layout())->addStretch();}
     while(QLayoutItem*i=exp_listLayout->takeAt(0)){if(i->widget())i->widget()->deleteLater();delete i;}
-    auto all=db.getExpensesOnly(m_userId);
+    // getExpenses() returns BOTH income and expense rows — Transactions should
+    // show everything, not just spending. getExpensesOnly() is still used
+    // elsewhere (category summary cards, "Spending by Category") since those
+    // are specifically about expense categories.
+    auto all=db.getExpenses(m_userId);
     QList<Expense> shown;
-    for(auto&e:all) if(filter=="All"||e.category==filter) shown.append(e);
-    double total=0; for(auto&e:shown)total+=e.amount;
+    for(auto&e:all){
+        bool match = (filter=="All")
+                   || (filter=="Income" && e.isIncome)
+                   || (!e.isIncome && e.category==filter);
+        if(match) shown.append(e);
+    }
+    double incomeTotal=0, expenseTotal=0;
+    for(auto&e:shown){ if(e.isIncome) incomeTotal+=e.amount; else expenseTotal+=e.amount; }
     QWidget*hdr=new QWidget(); hdr->setStyleSheet("background:white;border-radius:14px 14px 0 0;");
     QHBoxLayout*hl=new QHBoxLayout(hdr); hl->setContentsMargins(24,18,24,14);
-    QString title=(filter=="All")?"All Expenses":filter+" Expenses";
+    QString title;
+    if(filter=="All") title="All Transactions";
+    else if(filter=="Income") title="Income";
+    else title=filter+" Expenses";
     QLabel*tl=new QLabel(QString("%1  (%2)").arg(title).arg(shown.size()));
-    tl->setStyleSheet("color:#0f172a;font-size:15px;font-weight:700;font-family:'Inter','Segoe UI';"); hl->addWidget(tl); hl->addStretch();
+    tl->setStyleSheet("color:#0f172a;font-size:15px;font-weight:700;font-family:'Inter','Segoe UI';background:transparent;"); hl->addWidget(tl); hl->addStretch();
     if(!shown.isEmpty()){
-        QLabel*tot=new QLabel("Total: "); tot->setStyleSheet("color:#64748b;font-size:13px;"); hl->addWidget(tot);
-        QLabel*totAmt=new QLabel(ru(total));
-        totAmt->setStyleSheet("color:#ef4444;font-size:14px;font-weight:700;font-family:'Inter','Segoe UI';"); hl->addWidget(totAmt);}
+        if(incomeTotal>0 && expenseTotal>0){
+            // Mixed view (e.g. "All"): a single total would blur together
+            // money in and money out, so show both, clearly labeled.
+            QLabel*incLbl=new QLabel(QString("Income: +%1").arg(ru(incomeTotal)));
+            incLbl->setStyleSheet("color:#16a34a;font-size:13px;font-weight:700;font-family:'Inter','Segoe UI';background:transparent;"); hl->addWidget(incLbl);
+            QLabel*sp=new QLabel("   "); sp->setStyleSheet("background:transparent;"); hl->addWidget(sp);
+            QLabel*expLbl=new QLabel(QString("Expenses: -%1").arg(ru(expenseTotal)));
+            expLbl->setStyleSheet("color:#ef4444;font-size:13px;font-weight:700;font-family:'Inter','Segoe UI';background:transparent;"); hl->addWidget(expLbl);
+        }else if(incomeTotal>0){
+            QLabel*tot=new QLabel("Total: "); tot->setStyleSheet("color:#64748b;font-size:13px;background:transparent;"); hl->addWidget(tot);
+            QLabel*totAmt=new QLabel("+"+ru(incomeTotal));
+            totAmt->setStyleSheet("color:#16a34a;font-size:14px;font-weight:700;font-family:'Inter','Segoe UI';background:transparent;"); hl->addWidget(totAmt);
+        }else{
+            QLabel*tot=new QLabel("Total: "); tot->setStyleSheet("color:#64748b;font-size:13px;background:transparent;"); hl->addWidget(tot);
+            QLabel*totAmt=new QLabel(ru(expenseTotal));
+            totAmt->setStyleSheet("color:#ef4444;font-size:14px;font-weight:700;font-family:'Inter','Segoe UI';background:transparent;"); hl->addWidget(totAmt);
+        }
+    }
     exp_listLayout->addWidget(hdr);
     QFrame*sep=new QFrame(); sep->setFrameShape(QFrame::HLine); sep->setStyleSheet("background:#f1f5f9;max-height:1px;border:none;"); exp_listLayout->addWidget(sep);
     if(shown.isEmpty()){
-        QLabel*e=new QLabel("No expenses found."); e->setAlignment(Qt::AlignCenter);
-        e->setStyleSheet("color:#94a3b8;font-size:14px;padding:48px;font-family:'Inter','Segoe UI';"); exp_listLayout->addWidget(e);
+        QLabel*e=new QLabel("No transactions found."); e->setAlignment(Qt::AlignCenter);
+        e->setStyleSheet("color:#94a3b8;font-size:14px;padding:48px;font-family:'Inter','Segoe UI';background:transparent;"); exp_listLayout->addWidget(e);
     }else{
         for(auto&e:shown) exp_listLayout->addWidget(makeExpenseRow(e,true));}
     exp_listLayout->addStretch();
@@ -213,7 +242,7 @@ void Dashboard::refreshAnalytics(){
             QLabel*dot=new QLabel(); dot->setFixedSize(12,12);
             dot->setStyleSheet(QString("background:%1;border-radius:6px;").arg(col.name())); hl->addWidget(dot);
             QLabel*nm=new QLabel(it.key()); nm->setMinimumWidth(110);
-            nm->setStyleSheet("color:#0f172a;font-size:13px;font-family:'Inter','Segoe UI';"); hl->addWidget(nm);
+            nm->setStyleSheet("color:#0f172a;font-size:13px;font-family:'Inter','Segoe UI';background:transparent;"); hl->addWidget(nm);
             QProgressBar*bar=new QProgressBar(); bar->setFixedHeight(8); bar->setRange(0,1000);
             bar->setValue(tot>0?int(it.value()/tot*1000):0); bar->setTextVisible(false);
             bar->setStyleSheet(QString(
@@ -221,19 +250,19 @@ void Dashboard::refreshAnalytics(){
                 "QProgressBar::chunk{background:%1;border-radius:4px;}").arg(col.name()));
             hl->addWidget(bar,1);
             QLabel*al=new QLabel(ru(it.value())); al->setMinimumWidth(80); al->setAlignment(Qt::AlignRight);
-            al->setStyleSheet("color:#0f172a;font-size:13px;font-weight:600;font-family:'Inter','Segoe UI';"); hl->addWidget(al);
+            al->setStyleSheet("color:#0f172a;font-size:13px;font-weight:600;font-family:'Inter','Segoe UI';background:transparent;"); hl->addWidget(al);
             double pct=tot>0?it.value()/tot*100.0:0;
             QLabel*pl=new QLabel(QString("%1%").arg(pct,0,'f',0)); pl->setMinimumWidth(36); pl->setAlignment(Qt::AlignRight);
-            pl->setStyleSheet("color:#94a3b8;font-size:12px;font-family:'Inter','Segoe UI';"); hl->addWidget(pl);
+            pl->setStyleSheet("color:#94a3b8;font-size:12px;font-family:'Inter','Segoe UI';background:transparent;"); hl->addWidget(pl);
             an_catBreakdown->addWidget(row);
             QFrame*sep=new QFrame(); sep->setFrameShape(QFrame::HLine); sep->setStyleSheet("background:#f8fafc;max-height:1px;border:none;"); an_catBreakdown->addWidget(sep);}
-        if(allCats.isEmpty()){QLabel*e=new QLabel("No expenses yet."); e->setStyleSheet("color:#94a3b8;font-size:13px;"); an_catBreakdown->addWidget(e);}
+        if(allCats.isEmpty()){QLabel*e=new QLabel("No expenses yet."); e->setStyleSheet("color:#94a3b8;font-size:13px;background:transparent;"); an_catBreakdown->addWidget(e);}
         an_catBreakdown->addStretch();}
 }
 
 // ── onAddExpenseClicked ───────────────────────────────────────────────────────
 void Dashboard::onAddExpenseClicked(){
-    QDialog dlg(this); dlg.setWindowTitle("Add Expense"); dlg.setFixedWidth(440);
+    QDialog dlg(this); dlg.setWindowTitle("Add Transaction"); dlg.setFixedWidth(440);
     dlg.setStyleSheet(R"(
         QDialog{background:#ffffff;border-radius:16px;}
         QLabel{color:#0f172a;font-size:13px;font-weight:500;font-family:'Inter','Segoe UI';}
@@ -249,40 +278,78 @@ void Dashboard::onAddExpenseClicked(){
             border-radius:10px;padding:11px 22px;font-size:14px;}
         QPushButton#cancel:hover{background:#e2e8f0;})");
     QVBoxLayout*vl=new QVBoxLayout(&dlg); vl->setSpacing(18); vl->setContentsMargins(28,28,28,28);
-    QLabel*h=new QLabel("Add New Expense");
-    h->setStyleSheet("font-size:20px;font-weight:700;color:#0f172a;font-family:'Inter','Segoe UI';"); vl->addWidget(h);
-    QLabel*sub=new QLabel("Record a new transaction to your tracker");
-    sub->setStyleSheet("color:#94a3b8;font-size:13px;margin-bottom:4px;"); vl->addWidget(sub);
+    QLabel*h=new QLabel("Add Transaction");
+    h->setStyleSheet("font-size:20px;font-weight:700;color:#0f172a;font-family:'Inter','Segoe UI';background:transparent;"); vl->addWidget(h);
+    QLabel*sub=new QLabel("Record a new expense or income entry");
+    sub->setStyleSheet("color:#94a3b8;font-size:13px;margin-bottom:4px;background:transparent;"); vl->addWidget(sub);
     QFrame*divider=new QFrame(); divider->setFrameShape(QFrame::HLine); divider->setStyleSheet("background:#f1f5f9;"); vl->addWidget(divider);
+
+    // ── Expense / Income segmented toggle ───────────────────────────────────
+    QWidget*toggleWrap=new QWidget();
+    toggleWrap->setStyleSheet("background:#f1f5f9;border-radius:12px;");
+    QHBoxLayout*toggleLay=new QHBoxLayout(toggleWrap);
+    toggleLay->setContentsMargins(4,4,4,4); toggleLay->setSpacing(4);
+    QPushButton*typeExpense=new QPushButton("Expense");
+    QPushButton*typeIncome =new QPushButton("Income");
+    QString typeOnExpense = "QPushButton{background:white;color:#dc2626;border:none;border-radius:9px;"
+                             "padding:10px;font-size:13px;font-weight:700;font-family:'Inter','Segoe UI';}";
+    QString typeOnIncome   = "QPushButton{background:white;color:#16a34a;border:none;border-radius:9px;"
+                             "padding:10px;font-size:13px;font-weight:700;font-family:'Inter','Segoe UI';}";
+    QString typeOff        = "QPushButton{background:transparent;color:#64748b;border:none;border-radius:9px;"
+                             "padding:10px;font-size:13px;font-weight:600;font-family:'Inter','Segoe UI';}";
+    typeExpense->setCheckable(true); typeIncome->setCheckable(true);
+    typeExpense->setChecked(true); typeExpense->setStyleSheet(typeOnExpense); typeIncome->setStyleSheet(typeOff);
+    typeExpense->setCursor(Qt::PointingHandCursor); typeIncome->setCursor(Qt::PointingHandCursor);
+    toggleLay->addWidget(typeExpense); toggleLay->addWidget(typeIncome);
+    vl->addWidget(toggleWrap);
+
     QFormLayout*form=new QFormLayout(); form->setSpacing(14); form->setLabelAlignment(Qt::AlignLeft);
     QLineEdit*desc=new QLineEdit(); desc->setPlaceholderText("e.g. Grocery Shopping"); form->addRow("Description",desc);
     QComboBox*cat=new QComboBox();
-    cat->addItems({"Food","Transport","Utilities","Entertainment","Shopping","Health","Education","Rent","Other"});
+    QStringList expenseCats={"Food","Transport","Utilities","Entertainment","Shopping","Health","Education","Rent","Other"};
+    QStringList incomeCats ={"Salary","Freelance","Business","Investment","Gift","Other Income"};
+    cat->addItems(expenseCats);
     form->addRow("Category",cat);
     QLineEdit*amt=new QLineEdit(); amt->setPlaceholderText("0.00");
-    amt->setValidator(new QDoubleValidator(0.01,9999999.99,2,amt)); form->addRow("Amount ($)",amt);
+    amt->setValidator(new QDoubleValidator(0.01,9999999.99,2,amt)); form->addRow("Amount (₹)",amt);
     QDateEdit*de=new QDateEdit(QDate::currentDate()); de->setCalendarPopup(true); de->setDisplayFormat("yyyy-MM-dd");
     form->addRow("Date",de); vl->addLayout(form);
+
+    // Swap category list + button styling based on selected type
+    connect(typeExpense,&QPushButton::clicked,[=](){
+        typeExpense->setChecked(true); typeIncome->setChecked(false);
+        typeExpense->setStyleSheet(typeOnExpense); typeIncome->setStyleSheet(typeOff);
+        cat->clear(); cat->addItems(expenseCats);});
+    connect(typeIncome,&QPushButton::clicked,[=](){
+        typeIncome->setChecked(true); typeExpense->setChecked(false);
+        typeIncome->setStyleSheet(typeOnIncome); typeExpense->setStyleSheet(typeOff);
+        cat->clear(); cat->addItems(incomeCats);});
+
     QHBoxLayout*br=new QHBoxLayout(); br->addStretch();
     QPushButton*cancel=new QPushButton("Cancel"); cancel->setObjectName("cancel");
-    QPushButton*ok=new QPushButton("Save Expense"); ok->setObjectName("ok");
+    QPushButton*ok=new QPushButton("Save"); ok->setObjectName("ok");
     cancel->setCursor(Qt::PointingHandCursor); ok->setCursor(Qt::PointingHandCursor);
     br->addWidget(cancel); br->addWidget(ok); vl->addLayout(br);
     connect(cancel,&QPushButton::clicked,&dlg,&QDialog::reject);
     connect(ok,&QPushButton::clicked,[&](){
         QString d=desc->text().trimmed(); bool ok2;
         double a=amt->text().trimmed().toDouble(&ok2);
+        bool isIncome=typeIncome->isChecked();
         if(d.isEmpty()){QMessageBox::warning(&dlg,"Error","Please enter a description.");return;}
         if(!ok2||a<=0){QMessageBox::warning(&dlg,"Error","Please enter a valid amount.");return;}
-        QDate t2=QDate::currentDate();
-        BudgetInfo bi=Database::instance().getBudgetInfo(m_userId,t2.year(),t2.month());
-        if((bi.spent+a)>(bi.totalBudget+500.0)){
-            QMessageBox::warning(&dlg,"Over Budget",
-                QString("This would exceed your monthly budget.\nBudget: %1  |  Spent: %2")
-                .arg(ru(bi.totalBudget),ru(bi.spent)));
-            return;}
-        if(!Database::instance().addExpense(m_userId,d,cat->currentText(),a,de->date().toString("yyyy-MM-dd"),false)){
-            QMessageBox::critical(&dlg,"Error","Failed to save expense."); return;}
+        // Budget-exceeded check only applies to expenses — adding income
+        // should never be blocked by the budget limit.
+        if(!isIncome){
+            QDate t2=QDate::currentDate();
+            BudgetInfo bi=Database::instance().getBudgetInfo(m_userId,t2.year(),t2.month());
+            if((bi.spent+a)>(bi.totalBudget+500.0)){
+                QMessageBox::warning(&dlg,"Over Budget",
+                    QString("This would exceed your monthly budget.\nBudget: %1  |  Spent: %2")
+                    .arg(ru(bi.totalBudget),ru(bi.spent)));
+                return;}
+        }
+        if(!Database::instance().addExpense(m_userId,d,cat->currentText(),a,de->date().toString("yyyy-MM-dd"),isIncome)){
+            QMessageBox::critical(&dlg,"Error","Failed to save."); return;}
         dlg.accept();});
     if(dlg.exec()==QDialog::Accepted){
         refreshDashboard(); refreshExpenses(m_expFilter);
@@ -337,10 +404,10 @@ QWidget* Dashboard::makeCategoryProgressRow(const QString &name,double amount,do
     QVBoxLayout*vl=new QVBoxLayout(w); vl->setContentsMargins(0,6,0,6); vl->setSpacing(6);
     QHBoxLayout*top=new QHBoxLayout();
     QLabel*nm=new QLabel(name);
-    nm->setStyleSheet("color:#0f172a;font-size:13px;font-weight:500;font-family:'Inter','Segoe UI';");
+    nm->setStyleSheet("color:#0f172a;font-size:13px;font-weight:500;font-family:'Inter','Segoe UI';background:transparent;");
     top->addWidget(nm); top->addStretch();
     QLabel*al=new QLabel(ru(amount));
-    al->setStyleSheet("color:#0f172a;font-size:13px;font-weight:700;font-family:'Inter','Segoe UI';");
+    al->setStyleSheet("color:#0f172a;font-size:13px;font-weight:700;font-family:'Inter','Segoe UI';background:transparent;");
     top->addWidget(al); vl->addLayout(top);
     QProgressBar*bar=new QProgressBar(); bar->setFixedHeight(7); bar->setRange(0,1000);
     bar->setValue(total>0?int(amount/total*1000):0); bar->setTextVisible(false);
@@ -392,9 +459,9 @@ void Dashboard::createSidebar(){
 
     QVBoxLayout*nc=new QVBoxLayout(); nc->setSpacing(2);
     userNameLabel=new QLabel("User");
-    userNameLabel->setStyleSheet("color:#0f172a;font-size:14px;font-weight:700;font-family:'Inter','Segoe UI';");
+    userNameLabel->setStyleSheet("color:#0f172a;font-size:14px;font-weight:700;font-family:'Inter','Segoe UI';background:transparent;");
     userEmailLabel=new QLabel("");
-    userEmailLabel->setStyleSheet("color:#94a3b8;font-size:11px;font-family:'Inter','Segoe UI';");
+    userEmailLabel->setStyleSheet("color:#94a3b8;font-size:11px;font-family:'Inter','Segoe UI';background:transparent;");
     userEmailLabel->setWordWrap(true);
     nc->addWidget(userNameLabel); nc->addWidget(userEmailLabel);
     pl->addLayout(nc,1);
@@ -482,9 +549,9 @@ static QWidget* makeTopBar(const QString &title,const QString &sub,
     QHBoxLayout*l=new QHBoxLayout(bar); l->setContentsMargins(36,0,36,0);
     QVBoxLayout*tc=new QVBoxLayout(); tc->setSpacing(2);
     QLabel*tl=new QLabel(title);
-    tl->setStyleSheet("font-size:22px;font-weight:700;color:#0f172a;font-family:'Inter','Segoe UI';");
+    tl->setStyleSheet("font-size:22px;font-weight:700;color:#0f172a;font-family:'Inter','Segoe UI';background:transparent;");
     QLabel*sl=new QLabel(sub);
-    sl->setStyleSheet("font-size:13px;color:#94a3b8;font-family:'Inter','Segoe UI';");
+    sl->setStyleSheet("font-size:13px;color:#94a3b8;font-family:'Inter','Segoe UI';background:transparent;");
     tc->addWidget(tl); tc->addWidget(sl); l->addLayout(tc); l->addStretch();
     if(!btnLabel.isEmpty()){
         QPushButton*btn=new QPushButton(btnLabel); btn->setCursor(Qt::PointingHandCursor);
@@ -536,28 +603,28 @@ void Dashboard::createDashboardPage(){
         ico->setStyleSheet(QString("background:%1;border-radius:14px;").arg(iconBg));
         top->addWidget(ico); top->addStretch();
         QLabel*per=new QLabel("This Month");
-        per->setStyleSheet("color:#94a3b8;font-size:12px;font-family:'Inter','Segoe UI';");
+        per->setStyleSheet("color:#94a3b8;font-size:12px;font-family:'Inter','Segoe UI';background:transparent;");
         top->addWidget(per);
         vl->addLayout(top);
         vl->addSpacing(14);
 
         // Amount
-        amtOut=new QLabel("$0.00");
+        amtOut=new QLabel("₹0.00");
         amtOut->setStyleSheet(QString(
-            "font-size:32px;font-weight:700;color:%1;font-family:'Inter','Segoe UI';").arg(amtCol));
+            "font-size:32px;font-weight:700;color:%1;font-family:'Inter','Segoe UI';background:transparent;").arg(amtCol));
         vl->addWidget(amtOut);
         vl->addSpacing(4);
 
         // Label
         QLabel*tl=new QLabel(titleText);
-        tl->setStyleSheet("color:#64748b;font-size:13px;font-weight:500;font-family:'Inter','Segoe UI';");
+        tl->setStyleSheet("color:#64748b;font-size:13px;font-weight:500;font-family:'Inter','Segoe UI';background:transparent;");
         vl->addWidget(tl);
         vl->addSpacing(12);
 
         // Trend indicator
         if(!trendText.isEmpty()){
             QLabel*trend=new QLabel(trendText);
-            trend->setStyleSheet(QString("color:%1;font-size:12px;font-weight:600;font-family:'Inter','Segoe UI';").arg(trendCol));
+            trend->setStyleSheet(QString("color:%1;font-size:12px;font-weight:600;font-family:'Inter','Segoe UI';background:transparent;").arg(trendCol));
             vl->addWidget(trend);}
         return c;};
 
@@ -578,7 +645,7 @@ void Dashboard::createDashboardPage(){
 
     QHBoxLayout*txh=new QHBoxLayout(); txh->setContentsMargins(26,20,26,16);
     QLabel*txt=new QLabel("Recent Transactions");
-    txt->setStyleSheet("font-size:16px;font-weight:700;color:#0f172a;font-family:'Inter','Segoe UI';");
+    txt->setStyleSheet("font-size:16px;font-weight:700;color:#0f172a;font-family:'Inter','Segoe UI';background:transparent;");
     txh->addWidget(txt); txh->addStretch();
     QPushButton*va=new QPushButton("View All");
     va->setStyleSheet(
@@ -601,7 +668,7 @@ void Dashboard::createDashboardPage(){
     addShadow(catCard,20,5,14);
     QVBoxLayout*catl=new QVBoxLayout(catCard); catl->setContentsMargins(26,22,26,20); catl->setSpacing(12);
     QLabel*catt=new QLabel("Spending by Category");
-    catt->setStyleSheet("font-size:16px;font-weight:700;color:#0f172a;font-family:'Inter','Segoe UI';"); catl->addWidget(catt);
+    catt->setStyleSheet("font-size:16px;font-weight:700;color:#0f172a;font-family:'Inter','Segoe UI';background:transparent;"); catl->addWidget(catt);
     QFrame*catDiv=new QFrame(); catDiv->setFrameShape(QFrame::HLine); catDiv->setStyleSheet("background:#f8fafc;max-height:1px;border:none;"); catl->addWidget(catDiv);
     QWidget*catw=new QWidget(); catw->setStyleSheet("background:white;");
     dash_catList=new QVBoxLayout(catw); dash_catList->setContentsMargins(0,4,0,4); dash_catList->setSpacing(8);
@@ -628,11 +695,11 @@ void Dashboard::createDashboardPage(){
 void Dashboard::createExpensesPage(){
     QWidget*page=new QWidget(); page->setStyleSheet("background:#f1f5f9;");
     QVBoxLayout*outer=new QVBoxLayout(page); outer->setContentsMargins(0,0,0,0); outer->setSpacing(0);
-    outer->addWidget(makeTopBar("Transactions","All your recorded transactions","+ Add Expense",this,SLOT(onAddExpenseClicked())));
+    outer->addWidget(makeTopBar("Transactions","All your recorded income and expenses","+ Add Expense",this,SLOT(onAddExpenseClicked())));
 
     QFrame*filterCard=new QFrame(); filterCard->setStyleSheet("QFrame{background:white;border-bottom:1px solid #e2e8f0;}");
     QHBoxLayout*fl=new QHBoxLayout(filterCard); fl->setContentsMargins(28,14,28,14); fl->setSpacing(8);
-    QStringList cats={"All","Food","Transport","Utilities","Entertainment","Shopping","Health","Education","Rent","Other"};
+    QStringList cats={"All","Income","Food","Transport","Utilities","Entertainment","Shopping","Health","Education","Rent","Other"};
     QString tabOn="QPushButton{background:#10b981;color:white;border:none;border-radius:18px;padding:6px 18px;font-size:12px;font-weight:700;font-family:'Inter','Segoe UI';}";
     QString tabOff="QPushButton{background:transparent;color:#64748b;border:1.5px solid #e2e8f0;border-radius:18px;padding:6px 16px;font-size:12px;font-family:'Inter','Segoe UI';}"
                    "QPushButton:hover{background:#f8fafc;color:#0f172a;}";
@@ -677,9 +744,9 @@ void Dashboard::createAnalyticsPage(){
         addShadow(c,16,4,14);
         QVBoxLayout*vl=new QVBoxLayout(c); vl->setContentsMargins(26,22,26,22); vl->setSpacing(6);
         QLabel*lbl=new QLabel(label.toUpper());
-        lbl->setStyleSheet("color:#94a3b8;font-size:10px;font-weight:700;letter-spacing:1.2px;font-family:'Inter','Segoe UI';"); vl->addWidget(lbl);
-        val=new QLabel("$0.00"); val->setStyleSheet("font-size:28px;font-weight:700;color:#0f172a;font-family:'Inter','Segoe UI';"); vl->addWidget(val);
-        if(sub){*sub=new QLabel(""); (*sub)->setStyleSheet("color:#94a3b8;font-size:12px;font-family:'Inter','Segoe UI';"); vl->addWidget(*sub);} return c;};
+        lbl->setStyleSheet("color:#94a3b8;font-size:10px;font-weight:700;letter-spacing:1.2px;font-family:'Inter','Segoe UI';background:transparent;"); vl->addWidget(lbl);
+        val=new QLabel("₹0.00"); val->setStyleSheet("font-size:28px;font-weight:700;color:#0f172a;font-family:'Inter','Segoe UI';background:transparent;"); vl->addWidget(val);
+        if(sub){*sub=new QLabel(""); (*sub)->setStyleSheet("color:#94a3b8;font-size:12px;font-family:'Inter','Segoe UI';background:transparent;"); vl->addWidget(*sub);} return c;};
     QLabel*largestSub=nullptr;
     sr->addWidget(makeAnCard("Total Spent",an_totalSpent),1);
     QFrame*lcCard=makeAnCard("Largest Category",an_largestCat,&largestSub);
@@ -694,23 +761,23 @@ void Dashboard::createAnalyticsPage(){
     pieCard->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
     addShadow(pieCard,16,4,12);
     QVBoxLayout*pl=new QVBoxLayout(pieCard); pl->setContentsMargins(26,22,26,22); pl->setSpacing(8);
-    QLabel*pt=new QLabel("Spending by Category"); pt->setStyleSheet("font-size:16px;font-weight:700;color:#0f172a;font-family:'Inter','Segoe UI';"); pl->addWidget(pt);
-    QLabel*ps=new QLabel(QDate::currentDate().toString("MMMM yyyy")+" breakdown"); ps->setStyleSheet("color:#94a3b8;font-size:12px;font-family:'Inter','Segoe UI';"); pl->addWidget(ps);
+    QLabel*pt=new QLabel("Spending by Category"); pt->setStyleSheet("font-size:16px;font-weight:700;color:#0f172a;font-family:'Inter','Segoe UI';background:transparent;"); pl->addWidget(pt);
+    QLabel*ps=new QLabel(QDate::currentDate().toString("MMMM yyyy")+" breakdown"); ps->setStyleSheet("color:#94a3b8;font-size:12px;font-family:'Inter','Segoe UI';background:transparent;"); pl->addWidget(ps);
     an_pie=new PieChartWidget(); an_pie->setMinimumSize(300,300); pl->addWidget(an_pie,1); chartRow->addWidget(pieCard,1);
     QFrame*lineCard=new QFrame(); lineCard->setObjectName("lc");
     lineCard->setStyleSheet("QFrame#lc{background:white;border-radius:18px;border:none;}");
     lineCard->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
     addShadow(lineCard,16,4,12);
     QVBoxLayout*ll=new QVBoxLayout(lineCard); ll->setContentsMargins(26,22,26,22); ll->setSpacing(8);
-    QLabel*lt=new QLabel("Income vs Expenses"); lt->setStyleSheet("font-size:16px;font-weight:700;color:#0f172a;font-family:'Inter','Segoe UI';"); ll->addWidget(lt);
+    QLabel*lt=new QLabel("Income vs Expenses"); lt->setStyleSheet("font-size:16px;font-weight:700;color:#0f172a;font-family:'Inter','Segoe UI';background:transparent;"); ll->addWidget(lt);
     QDate s6=QDate::currentDate().addMonths(-5);
-    QLabel*ls=new QLabel(s6.toString("MMM")+" – "+QDate::currentDate().toString("MMM yyyy")); ls->setStyleSheet("color:#94a3b8;font-size:12px;font-family:'Inter','Segoe UI';"); ll->addWidget(ls);
+    QLabel*ls=new QLabel(s6.toString("MMM")+" – "+QDate::currentDate().toString("MMM yyyy")); ls->setStyleSheet("color:#94a3b8;font-size:12px;font-family:'Inter','Segoe UI';background:transparent;"); ll->addWidget(ls);
     an_line=new LineChartWidget(); an_line->setMinimumHeight(260); ll->addWidget(an_line,1);
     QHBoxLayout*leg=new QHBoxLayout(); leg->setSpacing(20);
     auto addLeg=[&](const QString&label,const QString&col){
         QWidget*lw=new QWidget(); QHBoxLayout*lh=new QHBoxLayout(lw); lh->setContentsMargins(0,0,0,0); lh->setSpacing(6);
         QLabel*dot=new QLabel(); dot->setFixedSize(10,10); dot->setStyleSheet(QString("background:%1;border-radius:5px;").arg(col)); lh->addWidget(dot);
-        QLabel*lb=new QLabel(label); lb->setStyleSheet(QString("color:#64748b;font-size:12px;font-family:'Inter','Segoe UI';")); lh->addWidget(lb); leg->addWidget(lw);};
+        QLabel*lb=new QLabel(label); lb->setStyleSheet(QString("color:#64748b;font-size:12px;font-family:'Inter','Segoe UI';background:transparent;")); lh->addWidget(lb); leg->addWidget(lw);};
     addLeg("Income","#10b981"); addLeg("Expenses","#ef4444"); leg->addStretch();
     ll->addLayout(leg); chartRow->addWidget(lineCard,1); cl->addLayout(chartRow);
 
@@ -720,7 +787,7 @@ void Dashboard::createAnalyticsPage(){
     addShadow(bkCard,16,4,12);
     QVBoxLayout*bkl=new QVBoxLayout(bkCard); bkl->setContentsMargins(26,22,26,22); bkl->setSpacing(0);
     QLabel*bkt=new QLabel("Category Breakdown");
-    bkt->setStyleSheet("font-size:16px;font-weight:700;color:#0f172a;margin-bottom:14px;font-family:'Inter','Segoe UI';"); bkl->addWidget(bkt);
+    bkt->setStyleSheet("font-size:16px;font-weight:700;color:#0f172a;margin-bottom:14px;font-family:'Inter','Segoe UI';background:transparent;"); bkl->addWidget(bkt);
     QWidget*bkw=new QWidget(); bkw->setStyleSheet("background:white;");
     an_catBreakdown=new QVBoxLayout(bkw); an_catBreakdown->setContentsMargins(0,0,0,0); an_catBreakdown->setSpacing(0);
     bkl->addWidget(bkw); cl->addWidget(bkCard);
@@ -739,19 +806,20 @@ void Dashboard::createSettingsPage(){
     sec->setStyleSheet("QFrame#stCard{background:white;border-radius:18px;border:none;}");
     addShadow(sec,16,4,12);
     QVBoxLayout*sl=new QVBoxLayout(sec); sl->setContentsMargins(32,32,32,32); sl->setSpacing(18);
-    QLabel*st=new QLabel("Monthly Budget"); st->setStyleSheet("font-size:18px;font-weight:700;color:#0f172a;font-family:'Inter','Segoe UI';"); sl->addWidget(st);
+    QLabel*st=new QLabel("Monthly Budget"); st->setStyleSheet("font-size:18px;font-weight:700;color:#0f172a;font-family:'Inter','Segoe UI';background:transparent;"); sl->addWidget(st);
     QLabel*sd=new QLabel("Set your monthly spending limit. Any unspent balance rolls forward automatically.");
-    sd->setWordWrap(true); sd->setStyleSheet("color:#64748b;font-size:13px;font-family:'Inter','Segoe UI';"); sl->addWidget(sd);
+    sd->setWordWrap(true); sd->setStyleSheet("color:#64748b;font-size:13px;font-family:'Inter','Segoe UI';background:transparent;"); sl->addWidget(sd);
     QFrame*dv=new QFrame(); dv->setFrameShape(QFrame::HLine); dv->setStyleSheet("background:#f1f5f9;"); sl->addWidget(dv);
     auto addRow=[&](const QString&lbl,QLabel*&out,const QString&col){
         QHBoxLayout*rl=new QHBoxLayout();
-        QLabel*ll=new QLabel(lbl); ll->setStyleSheet("color:#0f172a;font-size:14px;font-weight:500;font-family:'Inter','Segoe UI';"); rl->addWidget(ll); rl->addStretch();
-        out=new QLabel("—"); out->setStyleSheet(QString("color:%1;font-size:16px;font-weight:700;font-family:'Inter','Segoe UI';").arg(col)); rl->addWidget(out); sl->addLayout(rl);};
+        QLabel*ll=new QLabel(lbl); ll->setStyleSheet("color:#0f172a;font-size:14px;font-weight:500;font-family:'Inter','Segoe UI';background:transparent;"); rl->addWidget(ll); rl->addStretch();
+        out=new QLabel("—"); out->setStyleSheet(QString("color:%1;font-size:16px;font-weight:700;font-family:'Inter','Segoe UI';background:transparent;").arg(col)); rl->addWidget(out); sl->addLayout(rl);};
     addRow("Current base budget:",set_base,"#6366f1");
     addRow("Rolled over from last month:",set_rollover,"#10b981");
+    addRow("Income added this month:",set_income,"#16a34a");
     addRow("Total available this month:",set_total,"#0f172a");
     QFrame*dv2=new QFrame(); dv2->setFrameShape(QFrame::HLine); dv2->setStyleSheet("background:#f1f5f9;"); sl->addWidget(dv2);
-    QLabel*nl=new QLabel("Set New Monthly Budget ($):"); nl->setStyleSheet("color:#0f172a;font-size:14px;font-weight:600;font-family:'Inter','Segoe UI';"); sl->addWidget(nl);
+    QLabel*nl=new QLabel("Set New Monthly Budget (₹):"); nl->setStyleSheet("color:#0f172a;font-size:14px;font-weight:600;font-family:'Inter','Segoe UI';background:transparent;"); sl->addWidget(nl);
     QHBoxLayout*ir=new QHBoxLayout(); ir->setSpacing(14);
     QLineEdit*inp=new QLineEdit(); inp->setPlaceholderText("e.g. 5000.00"); inp->setValidator(new QDoubleValidator(1,99999999,2,inp));
     inp->setStyleSheet("QLineEdit{background:#f8fafc;color:#0f172a;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 14px;font-size:14px;font-family:'Inter','Segoe UI';}"
@@ -759,7 +827,7 @@ void Dashboard::createSettingsPage(){
     QPushButton*save=new QPushButton("Save Budget"); save->setCursor(Qt::PointingHandCursor);
     save->setStyleSheet("QPushButton{background:#10b981;color:white;border:none;border-radius:10px;padding:10px 22px;font-size:14px;font-weight:700;font-family:'Inter','Segoe UI';}"
                         "QPushButton:hover{background:#059669;}"); ir->addWidget(save); sl->addLayout(ir);
-    QLabel*status=new QLabel(""); status->setStyleSheet("font-size:13px;font-family:'Inter','Segoe UI';"); sl->addWidget(status);
+    QLabel*status=new QLabel(""); status->setStyleSheet("font-size:13px;font-family:'Inter','Segoe UI';background:transparent;"); sl->addWidget(status);
     cl->addWidget(sec); cl->addStretch(); outer->addWidget(content,1);
     auto refresh=[=](){
         if(m_userId<0)return;
@@ -767,16 +835,17 @@ void Dashboard::createSettingsPage(){
         BudgetInfo bi=Database::instance().getBudgetInfo(m_userId,t.year(),t.month());
         if(set_base)set_base->setText(ru(bi.baseBudget));
         if(set_rollover)set_rollover->setText(bi.rollover>0?ru(bi.rollover):"None");
+        if(set_income)set_income->setText(bi.monthlyIncome>0?ru(bi.monthlyIncome):"None");
         if(set_total)set_total->setText(ru(bi.totalBudget));};
     connect(navSettings,&QPushButton::clicked,refresh);
     connect(save,&QPushButton::clicked,[=](){
         bool ok; double a=inp->text().trimmed().toDouble(&ok);
-        if(!ok||a<=0){status->setStyleSheet("color:#ef4444;font-size:13px;"); status->setText("Please enter a valid amount.");return;}
+        if(!ok||a<=0){status->setStyleSheet("color:#ef4444;font-size:13px;background:transparent;"); status->setText("Please enter a valid amount.");return;}
         QDate t=QDate::currentDate();
         if(Database::instance().setBaseBudget(m_userId,t.year(),t.month(),a)){
-            status->setStyleSheet("color:#16a34a;font-size:13px;font-weight:600;"); status->setText("✓ Budget updated successfully!"); inp->clear();
+            status->setStyleSheet("color:#16a34a;font-size:13px;font-weight:600;background:transparent;"); status->setText("✓ Budget updated successfully!"); inp->clear();
             refresh(); refreshDashboard();
-        }else{status->setStyleSheet("color:#ef4444;font-size:13px;"); status->setText("Failed to save.");}});
+        }else{status->setStyleSheet("color:#ef4444;font-size:13px;background:transparent;"); status->setText("Failed to save.");}});
     pageStack->addWidget(page); // index 3
 }
 

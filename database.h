@@ -5,6 +5,7 @@
 #include <QSqlDatabase>
 #include <QList>
 #include <QMap>
+#include <QDate>
 
 struct Expense {
     int     id;
@@ -19,6 +20,7 @@ struct Expense {
 struct BudgetInfo {
     double baseBudget;
     double rollover;
+    double monthlyIncome;
     double totalBudget;
     double spent;
     double remaining;
@@ -50,9 +52,11 @@ public:
     QList<Expense> getExpenses(int userId);
     QList<Expense> getExpensesOnly(int userId);
     QList<Expense> getMonthlyExpensesOnly(int userId, int year, int month);
+    void           ensureDefaultIncome(int userId);
     double         getTotalIncome(int userId);
     double         getTotalExpenses(int userId);
     double         getMonthlyExpenses(int userId, int year, int month);
+    double         getMonthlyIncome(int userId, int year, int month);
     QMap<QString,double> getMonthlyCategoryTotals(int userId, int year, int month);
     QMap<QString,double> getAllCategoryTotals(int userId);
     QList<MonthlyTotal>  getMonthlyTotals(int userId, int months);
@@ -67,6 +71,7 @@ private:
     Database() = default;
     QSqlDatabase db;
     QString hashPassword(const QString &password);
+    QDate   getUserCreatedDate(int userId);
     static const double DEFAULT_BUDGET;
 };
 
